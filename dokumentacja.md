@@ -56,12 +56,14 @@ Autorzy: Maciej Nowakowski, Zuzanna Stajniak, Mateusz Lampert
 **<font  size=4>Opis tabel</font>**
 
 **Clients**
+
 Tabela przechowuje podstawowe dane o kliencie. Zawiera identyfikator klienta
 (clientID), imię oraz nazwisko (firstName, lastName) oraz dane adresowe (adress, city, region).
 
 Klucz główny: clientID
 
 **Orders**
+
 Tabela przechowuje podstawowe dane o zamówieniu. Zawiera identyfikator zamówienia
 (orderID), indentyfikator klienta (clientID), datę zamówienia (orderDate), link do płatności (paymentLink) oraz datę przyjęcia płatności (receiptDate).
 
@@ -69,6 +71,7 @@ Klucz główny: orderID
 Klucz obcy: clientID (z tabelą clients)
 
 **OrderDetails**
+
 Tabela przechowuje szczegółowe dane o zamówieniu. Zawiera identyfikator zamówienia
 (orderID),identyfikator usługi w koszyku (serviceID) oraz cenę za tą usługę (price).
 
@@ -76,77 +79,90 @@ Klucze główne: orderID, serviceID
 Klucze obce: orderID (z tabelą **Orders**), serviceID (z tabelą **Services**)
 
 **Services**
+
 Tabela przechowuje podstawowe dane o dostępnych usługach edukacyjnych. Zawiera identyfikator usługi (serviceID), nazwę usługi (serviceName), typ usługi (type - webinar, kurs, studia, zjazd, pojedyńcze zajęcia), datę rozpoczęcia (startDate) oraz cenę(price).
 
 Klucz główny: serviceID
 
 **Studies**
+
 Tabela przechowuje podstawowe dane o studiach. Zawiera identyfikator studiów(serviceID), nazwę (name), liczbę lat studiów (years) oraz liczbę zjazdów (terms).
 
 Klucz główny: ServiceID
 Klucz obcy: ServiceID (z tabelą **Services**)
 
 **Terms**
+
 Tabela przechowuje podstawowe dane o zjezdzie na studiach. Zawiera identyfikator zjazdu(termID), identyfikator studiów(serviceID), datę rozpoczęcia i zakończenia(startDate, endDate).
 
 Klucz główny: termID
 Klucz obcy: serviceID (z tabelą **Studies**)
 
 **Sylabus**
+
 Tabela przechowuje szczegółowe dane o sylabusie zjazdu na studiach. Zawiera identyfikator sylabusa (SylabusID) oraz identyfikator zjazdu (termID)
 
 Klucz główny: sylabusID
 Klucz obcy: termID (z tabelą **Terms**)
 
 **Subjects**
+
 Tabela zawiera szczegółowe informacje o przedmiotach realizowanych podczas poszczególnych zjazdów. Zawiera identyfikator przedmiotu(subjectID), identyfikator sylabusa (sylabusID), nazwę przedmiotu (subjectName) 
 
 Klucz główny: subjectID
 Klucz obcy: sylabusID (z tabelą **Sylabus**)
 
 **Grades**
+
 Tabela przechowuje informację o zaliczeniu przedmiotu. Zawiera identyfikator oceny(gradeID), identyfikator przedmiotu (subjectID), identyfikator klienta (clientID) oraz informację o zaliczeniu przedmiotu
 
 Klucz główny: gradeID
 Klucze obce: subjectID (z tabelą **Subjects**)
 
 **Employees**
+
 Tabela przechowuje podstawowe dane o pracownikach. Zawiera identyfikator pracownika
 (employeeID), imię oraz nazwisko (firstName, lastName) oraz stanowisko (position).
 
 Klucz główny:  employeeID
 
 **Interpreters**
+
 Tabela przechowuje podstawowe dane o tłumaczu. Zawiera identyfikator tłumacza (interpreterID), identyfikator pracownika (employeeID) oraz język, którym się posługuje (language)
 
 Klucz główny: interpreterID
 Klucz obcy:  employeeID (z tabelą **Employees**)
 
-**serviceDetails**
+**ServiceDetails**
+
 Tabela przechowuje szczegółowe dane o danej usłudze. Zawiera identyfikator usługi (courseID), identyfikator prowadzącego przedmiot(tutorID), maksymalną liczbę uczestników (maxParticipants), liczbę spotkań (totalMeetings) oraz liczbę nagrań do obejrzenia (totalRecords).
 
 Klucz główny: serviceID
 Klucze obce:  serviceID (z tabelami **Services**), tutorID (z tabelą **Employees**)
 
 **Meetings**
+
 Tabela przechowuje dane o spotkaniu. Zawiera identyfikator spotkania (meetingID), identyfikator usługi (serviceID), identyfikator tłumacza (interpreterID), datę i czas spotkania (datetime), link do spotkania online (meetingLink) oraz język, w którym prowadzone jest spotkanie.
 
 Klucz główny: meetingID
 Klucze obce:  serviceID (z tabelą **ServiceDetails**), interpreterID (z tabelą **Interpreters**)
 
 **Attendees**
+
 Tabela przechowuje dane o uczestnikach spotkań. Zawiera identyfikator uczestnika (attendeeID),  identyfikator spotkania (meetingID), identyfikator usługi (serviceID), informację o obecności (present) oraz indentyfikator zajęć na których odrabiano nieobecność (substituteMeetingID).
 
 Klucze główne: attendeeID, meetingID
 Klucz obcy: attendeeID (z tabelą **Attendees**), meetingID (z tabelami **Attendees**, **Meetings**)
 
 **Recordings**
+
 Tabela przechowuje linki do nagrań. Zawiera identyfikator spotkania (meetingID) oraz link do nagrania (recordLInk).
 
 Klucz główny: meetingID
 Klucz obcy: meetingID (z tabelą **Meetings**)
 
 **Access**
+
 Tabela przechowuje dane dostępów do nagrań. Zawiera identyfikator klienta (clientID),  identyfikator spotkania (meetingID), datę końca dostępu (lastDay) oraz status obejrzenia (status).
 
 Klucz główny: clientID
