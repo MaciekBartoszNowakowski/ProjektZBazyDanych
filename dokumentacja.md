@@ -180,8 +180,6 @@ Tabela przechowuje dane dostępów do nagrań. Zawiera identyfikator klienta (cl
 Klucz główny: clientID
 Klucz obcy: meetingID (z tabelą **Recordings**)
 
-<div style="page-break-after: always;"></div>
-
 **<font  size=4>Implementacja</font>**
 
 Do utworzenia bazy danych wraz z wszystkimi połączeniami użyta została następująca implementacja:
