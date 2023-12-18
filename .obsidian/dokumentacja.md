@@ -445,3 +445,15 @@ Do utworzenia bazy danych wraz z wszystkimi połączeniami użyta została nast�
 		FOREIGN KEY (termID)
 		REFERENCES Terms (termID);
 ```
+
+Opisy zaimplementowanych widoków
+
+
+```sql
+-- widok zwracający przychody dla kazdego oferowanego serwisu
+create view RaportFinansowy as
+	select serviceName, t.serviceID, przychody
+	from Services as s
+	join (select serviceID, sum(price) as przychody from OrderDetails
+	group by serviceID) as t on t.serviceID=s.serviceID
+```
