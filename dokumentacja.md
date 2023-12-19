@@ -481,6 +481,7 @@ CREATE TABLE Recordings (
     CONSTRAINT Recordings_pk PRIMARY KEY  (recordID)
 );
 
+<<<<<<< HEAD:dokumentacja.md
 -- Table: Services
 CREATE TABLE Services (
     serviceID char(4)  NOT NULL,
@@ -612,6 +613,7 @@ create view RaportFinansowy as
 	join (select serviceID, sum(price) as przychody from OrderDetails
 	group by serviceID) as t on t.serviceID=s.serviceID
 ```
+<<<<<<< HEAD:dokumentacja.md
 
 <div style="page-break-after: always;"></div>
 
@@ -654,3 +656,4 @@ BEGIN
     VALUES (@p_firstName, @p_lastName, @p_position);
 END;
 ```
+
