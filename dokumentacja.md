@@ -51,7 +51,8 @@ Autorzy: Maciej Nowakowski, Zuzanna Stajniak, Mateusz Lampert
 
 
 **<font  size=4>Schemat bazy danych</font>**
-<img src = "database.png" alt="Dataset A">
+
+![[database.png]]
 
 **<font  size=4>Opis tabel</font>**
 
@@ -613,10 +614,490 @@ create view RaportFinansowy as
 	join (select serviceID, sum(price) as przychody from OrderDetails
 	group by serviceID) as t on t.serviceID=s.serviceID
 ```
-<<<<<<< HEAD:dokumentacja.md
 
+Raport zwracający informację o liczbie zapisanych osób na przyszłe spotkania z kursów.
+
+```sql
+SELECT 'cm' + CAST(CM.meetingID AS char(4)) AS eventID, S.serviceName as eventName, COUNT(A.attendanceID) AS enrolled, 'CMeeting' as type
+FROM            Attendees AS A INNER JOIN
+                         Meetings AS M ON M.meetingID = A.meetingID INNER JOIN
+                         CoursesMeetings AS CM ON CM.meetingID = M.meetingID INNER JOIN
+                         Courses AS C ON C.serviceID = CM.serviceID INNER JOIN
+                         Services AS S ON S.serviceID = C.serviceID
+WHERE M.datetime > GETDATE()
+GROUP BY CM.meetingID, S.serviceName
+```
 <div style="page-break-after: always;"></div>
 
+Raport zwracający informację o liczbie zapisanych osób na przyszłe spotkania ze studiów.
+
+```sql
+SELECT 'sm' + CAST(SM.meetingID AS char(4)) AS eventID, S.serviceName AS eventName, COUNT(A.attendanceID) AS enrolled, 'SMeeting' as type
+FROM            Attendees AS A INNER JOIN
+                         Meetings AS M ON M.meetingID = A.meetingID INNER JOIN
+                         SubjectsMeetings AS SM ON SM.meetingID = M.meetingID INNER JOIN
+                         Services AS S ON S.serviceID = SM.subjectMeetingID
+WHERE M.datetime > GETDATE()
+GROUP BY SM.meetingID, S.serviceName
+```
+
+Raport zwracający informację o liczbie zapisanych osób na przyszłe studia, semestry, kursy, webinary.
+
+```sql
+SELECT S.serviceID as eventID, S.serviceName as eventName, COUNT(O.orderID) AS enrolled, S.type
+FROM            Orders AS O INNER JOIN
+                         OrderDetails AS OD ON OD.orderID = O.orderID RIGHT OUTER JOIN
+                         Services AS S ON S.serviceID = OD.serviceID
+WHERE S.startDate > GETDATE() AND S.type <> 'pSpotkanie'
+GROUP BY S.serviceID, S.serviceName
+```
+
+Raport zwracający informację o liczbie zapisanych osób na przyszłe wydarzenia.
+
+```sql
+CREATE VIEW PeopleEnrolledForFutureEvents as
+select *
+from PeopleEnrolledForFutureStudiesCoursesWebinars
+union
+select *
+from enrolledForCoursesMeetings
+union
+select *
+from enrolledForStudiesMeetings
+```
+
+Lista osób, które mają dostęp do usług za które nie zapłaciły.
+
+```sql
+CREATE VIEW ListOfDebtors AS  
+  
+with payed as  
+(select firstName, lastName, c.clientID, serviceID  
+from Clients c  
+	join Orders o on c.clientID = o.clientID  
+	join OrderDetails d on o.orderID = d.orderID  
+where o.receiptDate is not null),  
+  
+termMeetings as   
+(select t.termID, m.meetingID  
+from Terms t  
+	join Subjects s on t.termID = s.termID  
+	join SubjectsMeetings m on s.subjectID = m.subjectID),  
+  
+x as  
+(select a.clientID, a.firstName, a.lastName, b.meetingID  
+from payed a  
+	join termMeetings b on a.serviceID = b.termID),  
+  
+recC as  
+(select a.clientID, p.firstName, p.lastName  
+from Access a   
+	join CourseRecords r on a.recordID = r.recordID  
+	left join payed p on a.clientID = p.clientID and r.serviceID = p.serviceID  
+where p.clientID is null and p.serviceID is null),  
+  
+recS as  
+(select a.clientID, p.firstName, p.lastName  
+from Access a   
+	join SubjectsRecordings r on a.recordID = r.recordID  
+	join Subjects s on r.subjectID = s.subjectID  
+	left join payed p on a.clientID = p.clientID and s.termID = p.serviceID  
+where p.clientID is null and p.serviceID is null),  
+  
+meetC as  
+(select a.clientID, p.firstName, p.lastName  
+from Attendees a  
+	join CoursesMeetings c on a.meetingID = c.meetingID  
+	left join payed p on a.clientID = p.clientID and c.serviceID = p.serviceID  
+where p.clientID is null and p.serviceID is null),  
+  
+meetW as  
+(select a.clientID, p.firstName, p.lastName  
+from Attendees a  
+	join Webinars w on a.meetingID = w.meetingID  
+	left join payed p on a.clientID = p.clientID and w.serviceID = p.serviceID  
+where p.clientID is null and p.serviceID is null),  
+  
+meetS as  
+(select a.clientID, x.firstName, x.lastName  
+from Attendees a  
+	join SubjectsMeetings s on a.meetingID = s.meetingID  
+	left join x on a.clientID = x.clientID and s.meetingID = x.meetingID  
+where x.clientID is null and x.meetingID is null)  
+  
+select * from recC  
+union   
+select * from recS  
+union   
+select * from meetC  
+union   
+select * from meetW  
+union   
+select * from meetS
+```
+
+Lista dostępnych (opłaconych) spotkań w ramach webinarów.
+
+```sql
+create view  AvalibleWebinarMeetings as
+	select c.clientID, c.firstName+' '+c.lastName as name , m.meetingLink, m.datetime  from Clients as c
+	join Orders as o on o.clientID=c.clientID and receiptDate is not null
+	join OrderDetails as od on o.orderID=od.orderID
+	join Services as s on s.serviceID=od.serviceID
+	join webinars as w on s.serviceID=w.serviceID
+	join Meetings as m on m.meetingID=w.meetingID
+```
+
+Lista dostępnych  (opłaconych) spotkań w ramach przedmiotów w ramach studiów.
+
+```sql
+create view AvalibleSubjectMeetings as
+	select c.clientID, c.firstName+' '+c.lastName as name , m.meetingLink, m.datetime  from Clients as c
+	join Orders as o on o.clientID=c.clientID and receiptDate is not null
+	join OrderDetails as od on o.orderID=od.orderID
+	join Services as s on s.serviceID=od.serviceID
+	join Terms as t on t.termID=s.serviceID
+	join Subjects as su on su.termID=t.termID
+	join SubjectsMeetings as sm on sm.subjectID=su.subjectID
+	join Meetings as m on m.meetingID=sm.meetingID
+
+	union all
+
+	select c.clientID, c.firstName+' '+c.lastName as name , m.meetingLink, m.datetime from Clients as c
+	join Orders as o on o.clientID=c.clientID and receiptDate is not null
+	join OrderDetails as od on o.orderID=od.orderID
+	join Services as s on s.serviceID=od.serviceID
+	join SubjectsMeetings as sm on sm.subjectMeetingID=s.serviceID
+	join Meetings as m on m.meetingID=sm.meetingID
+```
+
+Lista dostępnych  (opłaconych) spotkań w ramach kursów.
+
+```sql
+create view AvalibleCourseMeetings as
+	select c.clientID, c.firstName+' '+c.lastName as name , m.meetingLink, m.datetime  from Clients as c
+	join Orders as o on o.clientID=c.clientID and receiptDate is not null
+	join OrderDetails as od on o.orderID=od.orderID
+	join Services as s on s.serviceID=od.serviceID
+	join Courses as cs on s.serviceID=cs.serviceID
+	join CoursesMeetings as cm on cm.serviceID=cs.serviceID
+	join Meetings as m on m.meetingID=cm.meetingID
+```
+
+Wszystkie dostępne  (opłacone) spotkania.
+
+```sql
+create view AllAvalibleMeetings as
+	select * from AvalibleSubjectMeetings
+	union all
+	select * from AvalibleCourseMeetings
+	union all
+	select * from AvalibleWebinarMeetings
+```
+
+Raport kolizji ze wględu na czas spotkań.
+
+```sql
+Create VIEW CollisionReport as
+	SELECT Distinct A.clientID, A.name, A.dateTime AS CollisionDate
+	FROM AllAvalibleMeetings A
+	JOIN AllAvalibleMeetings B ON A.clientID = B.clientID AND A.dateTime <= B.dateTime
+	AND A.dateTime + DATEADD(HOUR, 1, '1900-01-01T00:00:00') > B.dateTime and A.meetingLink!=B.meetingLink
+```
+
+Lista klientów wraz z zdanymi kursami.
+
+```sql
+create view PassedCourses as
+	select c.ClientID, firstName, LastName, address from clients as c
+	join CourseGrade as g on g.clientID=c.clientID and
+	passed is not Null and passed = 1
+```
+
+ Lista klientów, którzy zaliczyli wszystkie przedmioty na studiach.
+
+```sql
+create view PassedStudiesGrades as
+	with temp as
+		(select c.ClientID, firstName, LastName, s.subjectID,
+		s.subjectName, t.studiesID, grade, name as studiesName, address+' '+city+' '+region address
+		from clients as c
+		join SubjectGrades as g on g.clientID=c.clientID
+		join Subjects as s on s.subjectID=g.subjectID
+		join Terms as t on t.termID=s.termID
+		join studies on studies.studiesID=t.studiesID),
+		amountOfSubjects as
+			(select s.StudiesID, count(*) as amount from Studies as s
+			join terms as t on t.studiesID=s.studiesID
+			join Subjects on Subjects.termID=t.termID
+			group by s.studiesID)
+			
+select a.StudiesID, StudiesName, ClientID, firstName, LastName, address 
+from amountOfSubjects as a
+	join (select ClientID, studiesName, studiesID,firstName, LastName, address, count(*) as amountOfPassed from temp
+	where grade is not null and grade>2
+	group by ClientID, studiesName, studiesID,firstName, LastName, address) as t
+	on t.studiesID=a.studiesID and amount=amountOfPassed
+```
+
+Lista klientów, który zaliczyli wszystkie praktyki.
+
+```sql
+create view PassedAllInternships as
+	with temp as
+		(select c.ClientID, firstName, LastName, i.InternshipID,
+		s.studiesID, passed, name as studiesName, address+' '+city+' '+region address
+		from clients as c
+		join IndividualInternship as i on i.clientID=c.clientID
+		join Practices as p on p.PracticeID=i.PracticeID
+		join studies as s on s.studiesID=p.studiesID),
+		amountOfPractices as
+			(select s.StudiesID, count(*) as amount from Studies as s
+			join Practices as p on p.studiesID=s.studiesID
+			group by s.studiesID)
+			
+	select a.StudiesID, StudiesName, ClientID, firstName, LastName, address from amountOfPractices as a
+	join (select ClientID, studiesName, studiesID,firstName, LastName, address, count(*) as amountOfPassed from temp
+	where Passed is not null and passed=1 group by ClientID, studiesName, studiesID,firstName, LastName, address) as t
+	on t.studiesID=a.studiesID and amount=amountOfPassed
+```
+
+Lista klientów, który zakończyli studia pozytywnie.
+
+```sql
+create view PassedStudies as
+	select g.clientID, g.firstName, g.lastName, g.address from PassedStudiesGrades as g
+	join PassedAllInternships as i
+	on i.clientID=g.clientID
+```
+
+Frekwencja pojedynczych spotkań.
+
+```sql
+create view SingleMeetingFrequentionReport as
+	select m.meetingID, count(*) as AmountOfRegistered, sum(present) as AmountOfPresent, format((cast(sum(present) as float)/count(*))*100, '0.00')+'%' as frequention, datetime from Meetings as m
+	join Attendees as a on m.meetingID=a.meetingID and datetime<=GETDATE()
+	group by m.meetingID, datetime
+```
+
+Frekwencja w ramach przedmiotów.
+
+```sql
+create view SubjectFrequentionReport as
+	select s.subjectID, SubjectName, endDate, t.termID, studiesID,
+	min(cast(replace((f.frequention),'%','') as decimal(5,2))) as 'smallestFrequention',
+	max(cast(replace((f.frequention),'%','') as decimal(5,2))) as 'biggestFrequention',
+	cast(avg(cast(replace((f.frequention),'%','') as decimal(5,2))) as decimal(5,2)) as 'avarageFrequention'
+	from Subjects as s
+	join terms as t on t.termID=s.termID and (endDate<GETDATE() or subjectID='p001')
+	join SubjectsMeetings sm on s.subjectID=sm.subjectID
+	join SingleMeetingFrequentionReport as f on f.meetingID=sm.meetingID
+	group by s.subjectID, SubjectName,endDate, t.termID, studiesID
+```
+
+Frekwencja w ramach zjazdu.
+
+```sql
+create view TermFrequentionReport as
+	with tempDesc as
+		(select top 1 subjectID, subjectName, termID, avarageFrequention
+		from SubjectFrequentionReport as sr
+		order by avarageFrequention desc
+		),
+		tempAsc as (select top 1 subjectID, subjectName, termID, avarageFrequention
+		from SubjectFrequentionReport as sr
+		order by avarageFrequention asc),
+		tempAvg as(
+		select sr.termID, avg(avarageFrequention) as avarage
+		from  SubjectFrequentionReport as sr
+		group by sr.termID
+		)
+		
+select t.termID, maksi.subjectID as IdOfMostPopularSubject, maksi.subjectName as NameOfMostPopularSubject, maksi.avarageFrequention as frequentionOfMostPopular,
+		mini.subjectID as IdOfLeastPopularSubject, mini.subjectName as NameOfLeastPopularSubject, mini.avarageFrequention as frequentionOfLeastPopular,
+		a.avarage as avarageFrequentionOnThisTerm
+	from terms as t
+	join (select * from tempDesc) as maksi on maksi.termID=t.termID
+	join (select * from tempAsc) as mini on mini.termID=t.termID
+	join (select termID, avarage from tempAvg ) as a on a.termID=t.termID
+```
+
+
+Funkcje
+
+Funkcja zwracająca tabelę z wszystkimi ID meetingów dla danego kursu (potrzebne do innych procedur)
+
+```sql
+CREATE FUNCTION MeetingsDuringCourse(@serviceID CHAR(4))
+RETURNS TABLE
+AS
+RETURN (
+	select M.meetingID
+	from Services S
+		join Courses C on C.serviceID = S.serviceID
+		join CoursesMeetings CM on CM.serviceID = C.serviceID
+		join Meetings M on M.meetingID = CM.meetingID
+	where S.serviceID = @serviceID
+);
+```
+
+Funkcja zwracająca tabelę z wszystkimi ID meetingów dla danego webinaru (potrzebne do innych procedur)
+
+```sql
+CREATE FUNCTION MeetingsDuringWebinar(@serviceID CHAR(4))
+RETURNS TABLE
+AS
+RETURN (
+	select M.meetingID
+	from Services S
+		join Webinars W on W.serviceID = S.serviceID
+		join Meetings M on M.meetingID = W.meetingID
+	where S.serviceID = @serviceID
+);
+```
+
+Funkcja zwracająca tabelę z wszystkimi ID meetingów dla danego spotkania w ramach studiów(potrzebne do innych procedur)
+
+```sql
+CREATE FUNCTION MeetingsDuringSubject(@serviceID CHAR(4))
+RETURNS TABLE
+AS
+RETURN (
+	select M.meetingID
+	from Services S
+		join SubjectsMeetings SM on SM.subjectMeetingID = S.serviceID
+		join Meetings M on M.meetingID = SM.meetingID
+	where S.serviceID = @serviceID
+);
+```
+
+Funkcja zwracająca tabelę z wszystkimi ID meetingów dla danego semestru (zjazdu) w ramach studiów(potrzebne do innych procedur)
+
+```sql
+CREATE FUNCTION MeetingsDuringTerm(@serviceID CHAR(4))
+RETURNS TABLE
+AS
+RETURN (
+	select M.meetingID
+	from Services S
+		join Terms T on T.termID = S.serviceID
+		join Subjects on Subjects.termID = T.termID
+		join SubjectsMeetings SM on SM.subjectID = Subjects.subjectID
+		join Meetings M on M.meetingID = SM.meetingID
+	where S.serviceID = @serviceID
+);
+```
+
+Funkcja zwracająca tabelę z wszystkimi ID meetingów dla danych studiów (potrzebne do innych procedur)
+
+```sql
+CREATE FUNCTION MeetingsDuringStudies(@serviceID CHAR(4))
+RETURNS TABLE
+AS
+RETURN (
+	select M.meetingID
+	from Services S
+		join Studies on Studies.studiesID = S.serviceID
+		join Terms T on T.studiesID = Studies.studiesID
+		join Subjects on Subjects.termID = T.termID
+		join SubjectsMeetings SM on SM.subjectID = Subjects.subjectID
+		join Meetings M on M.meetingID = SM.meetingID
+	where S.serviceID = @serviceID
+);
+```
+
+Funkcja zwracająca tabelę z wszystkimi ID meetingów dla dowolnej usługi (potrzebne do innych procedur)
+
+```sql
+CREATE FUNCTION MeetingsDuringService(@serviceID CHAR(4))
+RETURNS TABLE
+AS
+RETURN
+(
+    SELECT *
+    FROM
+    (
+        SELECT * FROM MeetingsDuringCourse(@serviceID) WHERE (SELECT type FROM Services WHERE serviceID = @serviceID) = 'kurs'
+        UNION ALL
+        SELECT * FROM MeetingsDuringWebinar(@serviceID) WHERE (SELECT type FROM Services WHERE serviceID = @serviceID) = 'webinar'
+        UNION ALL
+		SELECT * FROM MeetingsDuringStudies(@serviceID) WHERE (SELECT type FROM Services WHERE serviceID = @serviceID) = 'studia'
+        UNION ALL
+		SELECT * FROM MeetingsDuringSubject(@serviceID) WHERE (SELECT type FROM Services WHERE serviceID = @serviceID) = 'pSpotkanie'
+        UNION ALL
+		SELECT * FROM MeetingsDuringTerm(@serviceID) WHERE (SELECT type FROM Services WHERE serviceID = @serviceID) = 'semestr'
+    ) AS MergedMeetings
+);
+```
+
+Funkcja zwracająca wszystkie nagrania dla danego kursu
+
+```sql
+create function RecordingsDuringCourse(@serviceID CHAR(4))
+returns TABLE
+as
+return (
+	select CR.recordID
+	from Services S
+		join Courses C on C.serviceID = S.serviceID
+		join CourseRecords CR on CR.serviceID = C.serviceID
+	where S.serviceID = @serviceID
+)
+```
+
+Funkcja zwracająca wszystkie nagrania dla danego semestru
+
+```sql
+create function RecordingsDuringTerm(@serviceID CHAR(4))
+returns TABLE
+as
+return (
+	select SR.recordID
+	from Services S
+		join Terms T on T.termID = S.serviceID
+		join Subjects on Subjects.termID = T.termID
+		join SubjectsRecordings SR on SR.subjectID = Subjects.subjectID
+	where S.serviceID = @serviceID
+)
+```
+
+Funkcja zwracająca wszystkie nagrania dla danych studiów
+
+```sql
+create function RecordingsDuringStudies(@serviceID CHAR(4))
+returns TABLE
+as
+return (
+	select SR.recordID
+	from Services S
+		join Studies on Studies.studiesID = S.serviceID
+		join Terms T on T.studiesID = Studies.studiesID
+		join Subjects on Subjects.termID = T.termID
+		join SubjectsRecordings SR on SR.subjectID = Subjects.subjectID
+	where S.serviceID = @serviceID
+)
+```
+
+Funkcja zwracająca wszystkie nagrania dla dowolnej usługi
+
+```sql
+CREATE FUNCTION RecordingsDuringService(@serviceID CHAR(4))
+RETURNS TABLE
+AS
+RETURN
+(
+    SELECT *
+    FROM
+    (
+        SELECT * FROM RecordingsDuringCourse(@serviceID) WHERE (SELECT type FROM Services WHERE serviceID = @serviceID) = 'kurs'
+        UNION ALL
+		SELECT * FROM RecordingsDuringStudies(@serviceID) WHERE (SELECT type FROM Services WHERE serviceID = @serviceID) = 'studia'
+        UNION ALL
+		SELECT * FROM RecordingsDuringTerm(@serviceID) WHERE (SELECT type FROM Services WHERE serviceID = @serviceID) = 'semestr'
+    ) AS MergedMeetings
+);
+```
+ 
 **<font  size=4>Procedury</font>**
 
 Przykładowa implementacja procedury dodające nowej klienta:
@@ -639,7 +1120,7 @@ BEGIN
 END;
 ```
 
-Przykładowa implementacja prodecury dodającej nowego pracownika:
+Przykładowa implementacja procedury dodającej nowego pracownika:
 
 ```sql
 Procedura dodająca nowego pracownika. Jako argumenty przyjmuje imię, nazwisko oraz stanowisko pracy.
@@ -657,3 +1138,277 @@ BEGIN
 END;
 ```
 
+Procedura dodająca obecności dla danego klienta dla danego serwisu
+
+```sql
+CREATE PROCEDURE addCustomerToServiceAttendance
+    @ClientID INTEGER,
+	@ServiceID CHAR(4)
+AS
+BEGIN
+	insert into Attendees (clientID, meetingID, present, substituteAttendanceID)
+	select @ClientID, MDS.meetingID, NULL, NULL
+	from MeetingsDuringService(@ServiceID) as MDS
+END;
+```
+
+Procedura przyznająca dostęp do nagrań w ramach kursu, studiów lub semestru
+
+```sql
+CREATE PROCEDURE giveAccessToCourseOrStudiesRecordings
+    @ServiceID CHAR(4),
+	@ClientID INTEGER
+AS
+BEGIN
+	insert into Access (clientID, recordID, lastDay, status)
+	select @ClientID, RDS.recordID, DATEADD(DAY, 30, GETDATE()), NULL
+	from RecordingsDuringService(@ServiceID) as RDS
+END;
+```
+
+Procedura dzięki której można manualnie przyznać dostęp użytkownikowi
+
+```sql
+CREATE PROCEDURE enrollManually
+    @ServiceID CHAR(4),
+	@ClientID INTEGER
+AS
+BEGIN
+	DECLARE @Type VARCHAR(10);
+	SET @Type = (select type from Services where serviceID = @ServiceID)
+
+	IF @Type IN ('kurs', 'studia', 'semestr')
+	BEGIN
+		EXEC giveAccessToCourseOrStudiesRecordings @ClientID, @ServiceID;
+    END
+	EXEC addCustomerToServiceAttendance @ClientID, @ServiceID;
+END;
+```
+
+Przyznanie dostępu konkretnemu klientowi do konkretnego nagrania 
+
+```sql
+create procedure giveClientAccessToRecording
+	@clientID INTEGER,
+	@recordID INTEGER
+as
+begin
+	insert into Access(recordID, clientID, lastDay, status)
+	values (@recordID, @clientID, DATEADD(day, 30, getdate()), NULL)
+end;
+```
+
+Dodawanie nowego nagrania spotkania
+
+```sql
+create procedure createRecording
+	@MeetingID INTEGER
+as
+begin
+	declare @meetingLink VARCHAR(100);
+	declare @recordLink VARCHAR(100);
+	declare @newRecordID INTEGER;
+	set @meetingLink = (select meetingLink from Meetings where MeetingID = @MeetingID);
+	set @recordLink = 'https://www.educewave.com/r' + SUBSTRING(@meetingLink, 28, 6);
+
+	insert into Recordings(recordLink)
+	values (@recordLink);
+	
+	set @newRecordID = SCOPE_IDENTITY();
+
+	update Recordings
+	set recordLink = @recordLink + cast(@newRecordID as varchar(5))
+	where recordID = @newRecordID;
+
+	update Meetings
+	set recordID = @newRecordID
+	where meetingID = @MeetingID;
+end;
+```
+
+Tworzenie nowego nagrania i automatyczne przydzielanie dostępu wszystkim uprawnionym.
+
+```sql
+create procedure giveAccessToNewRecording
+	@MeetingID INTEGER
+as
+begin
+	exec createRecording @MeetingID;
+
+	declare @newRecordingID INTEGER;
+	set @newRecordingID = (select max(recordID) from Recordings)
+
+	insert into Access(clientID, recordID, lastDay, status)
+	select A.clientID, @newRecordingID, DATEADD(day, 30, GETDATE()), NULL
+	from Attendees A
+	where A.meetingID = @MeetingID
+
+end;
+```
+
+Zmiana daty spotkania.
+
+```sql
+CREATE PROCEDURE changeMeetingDate  
+    @meetingID INT,  
+    @newDate DATETIME  
+AS  
+BEGIN  
+    IF EXISTS (SELECT 1 FROM Meetings WHERE meetingID = @meetingID)  
+    BEGIN  
+        UPDATE Meetings  
+        SET datetime = @newDate  
+        WHERE meetingID = @meetingID;  
+        PRINT 'Meeting date updated successfully.';  
+    END  
+    ELSE  
+    BEGIN  
+        PRINT 'Meeting with the specified meetingID does not exist.';  
+    END  
+END;
+```
+
+Zmiana dostępności danej usługi (włączenie oraz wyłączenie)
+
+```sql
+CREATE PROCEDURE changeAvailability  
+    @serviceID CHAR(4)  
+AS  
+BEGIN  
+    IF EXISTS (SELECT 1 FROM Services WHERE serviceID = @serviceID)  
+    BEGIN  
+        UPDATE Services  
+        SET availability = ~availability   
+        WHERE serviceID = @serviceID;  
+    END  
+    ELSE  
+    BEGIN  
+        PRINT 'Service with the specified serviceID does not exist.';  
+    END  
+END;
+```
+
+****<font  size=4>Triggery</font>
+
+Jak ktoś kupuje dostęp do usługi, to dodawany na listę obecności
+
+```sql
+CREATE TRIGGER AddToAttendanceList
+ON Orders
+AFTER UPDATE
+AS
+BEGIN
+    IF UPDATE(ReceiptDate)
+    BEGIN
+        DECLARE @ReceiptDateBefore DATETIME;
+		DECLARE @ServiceID CHAR(4);
+		DECLARE @ClientID INTEGER;
+        DECLARE @ReceiptDateAfter DATETIME;
+
+        -- Pobierz stare i nowe wartości statusu
+        SELECT @ReceiptDateBefore = D.receiptDate,
+               @ServiceID = OD.serviceID,
+               @ClientID = D.clientID,
+               @ReceiptDateAfter = I.receiptDate
+        FROM deleted D
+        JOIN inserted I ON D.orderID = I.orderID
+        JOIN OrderDetails OD ON OD.orderID = I.orderID;
+
+        IF @ReceiptDateBefore IS NULL AND @ReceiptDateAfter IS NOT NULL
+        BEGIN
+			EXEC addCustomerToServiceAttendance @ClientID, @ServiceID;
+        END
+    END
+END;
+```
+
+
+Trigger dający użytkownikowi dostęp do obowiązkowych nagrań w momencie zaksięgowania płatności
+
+```sql
+CREATE TRIGGER AddToAccessList
+ON Orders
+AFTER UPDATE
+AS
+BEGIN
+    IF UPDATE(ReceiptDate)
+    BEGIN
+        DECLARE @ReceiptDateBefore DATETIME;
+		DECLARE @ServiceID CHAR(4);
+		DECLARE @ClientID INTEGER;
+        DECLARE @ReceiptDateAfter DATETIME;
+
+        SELECT @ReceiptDateBefore = D.receiptDate,
+               @ServiceID = OD.serviceID,
+               @ClientID = D.clientID,
+               @ReceiptDateAfter = I.receiptDate
+        FROM deleted D
+        JOIN inserted I ON d.orderID = I.orderID
+        JOIN OrderDetails OD ON OD.orderID = D.orderID
+		JOIN Services S ON S.serviceID = OD.serviceID and S.type IN ('kurs', 'studia', 'semestr');
+
+        IF @ReceiptDateBefore IS NULL AND @ReceiptDateAfter IS NOT NULL
+		BEGIN
+			EXEC giveAccessToCourseOrStudiesRecordings @ClientID, @ServiceID;
+        END
+    END
+END;
+```
+
+Trigger aktywujący dostępność usługi jeżeli zostały wprowadzone wszystkie zaplanowane spotkania.
+
+```sql
+CREATE TRIGGER UpdateAvailability  
+ON CoursesMeetings  
+AFTER INSERT  
+AS  
+BEGIN  
+    DECLARE @serviceID VARCHAR(4);  
+  
+    SELECT TOP 1 @serviceID = serviceID  
+    FROM inserted;  
+  
+    IF (  
+        (SELECT COUNT(*) FROM CoursesMeetings WHERE serviceID = @serviceID) =  
+        (SELECT totalMeetings FROM Courses WHERE serviceID = @serviceID)  
+       )  
+    BEGIN  
+        UPDATE Services  
+        SET availability = 1  
+        WHERE serviceID = @serviceID;  
+    END;  
+END;
+```
+
+Trigger wstawiający nowe spotkania jeżeli nie przekraczają limitu spotkań.
+
+```sql
+CREATE TRIGGER PreventExceedingTotalMeetings  
+ON CoursesMeetings  
+INSTEAD OF INSERT  
+AS  
+BEGIN  
+    DECLARE @TotalMeetings INT;  
+  
+    SELECT @TotalMeetings = c.totalMeetings  
+    FROM inserted i  
+    JOIN Courses c ON i.serviceID = c.serviceID;  
+  
+DECLARE @serviceID VARCHAR(4);  
+  
+    SELECT TOP 1 @serviceID = serviceID  
+    FROM inserted;  
+  
+    IF ((SELECT COUNT(*) FROM CoursesMeetings WHERE (serviceID = @serviceID))   
++ (SELECT COUNT(*) FROM inserted i WHERE (serviceID = @serviceID)) <= @TotalMeetings)  
+    BEGIN  
+        INSERT INTO CoursesMeetings (courseMeetingID, meetingID, serviceID)  
+        SELECT courseMeetingID, meetingID, serviceID  
+        FROM inserted;  
+    END  
+    ELSE  
+    BEGIN  
+        PRINT 'Exceeded the TotalMeetings limit in the Courses table.';  
+    END  
+END
+```
