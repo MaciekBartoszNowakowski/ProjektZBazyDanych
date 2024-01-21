@@ -58,15 +58,15 @@ Autorzy: Maciej Nowakowski, Zuzanna Stajniak, Mateusz Lampert
 
 **Clients**
 
-Tabela przechowuje podstawowe dane o kliencie. Zawiera identyfikator klienta
+Tabela przechowuje podstawowe dane o kliencie. Klient to osoba, która może złożyć zamówienie i korzystać z usług szkoły. Zawiera identyfikator klienta
 (clientID), imię oraz nazwisko (firstName, lastName) oraz dane adresowe (adress, city, region).
 
 Klucz główny: clientID
 
 **Orders**
 
-Tabela przechowuje podstawowe dane o zamówieniu. Zawiera identyfikator zamówienia
-(orderID), indentyfikator klienta (clientID), datę zamówienia (orderDate), link do płatności (paymentLink) oraz datę przyjęcia płatności (receiptDate).
+Tabela przechowuje podstawowe dane o zamówieniu. Można zamówić wiele usług w jednym zamówieniu. Można zamówić webinar, kurs, studia, zjazd na studiach lub pojedyncze spotkanie w ramach studiów.  Tablica zawiera identyfikator zamówienia
+(orderID), identyfikator klienta (clientID), datę zamówienia (orderDate), link do płatności (paymentLink) oraz datę przyjęcia płatności (receiptDate).
 
 Klucz główny: orderID
 
@@ -74,7 +74,7 @@ Klucz obcy: clientID (z tabelą clients)
 
 **OrderDetails**
 
-Tabela przechowuje szczegółowe dane o zamówieniu. Zawiera identyfikator zamówienia
+Tabela przechowuje szczegółowe dane o zamówieniu. Można zamówić webinar, kurs, studia, zjazd na studiach lub pojedyncze spotkanie w ramach studiów. Zawiera identyfikator zamówienia
 (orderID), identyfikator usługi w koszyku (serviceID) oraz cenę za tą usługę (price).
 
 Klucze główne: orderID, serviceID
@@ -83,13 +83,13 @@ Klucze obce: orderID (z tabelą **Orders**), serviceID (z tabelą **Services**)
 
 **Services**
 
-Tabela przechowuje podstawowe dane o dostępnych usługach edukacyjnych. Zawiera identyfikator usługi (serviceID), nazwę usługi (serviceName), typ usługi (type - webinar, kurs, studia, zjazd, pojedyńcze spotkanie), datę rozpoczęcia (startDate) oraz cenę(price).
+Tabela przechowuje podstawowe dane o dostępnych usługach edukacyjnych. Usługi to webinar, kurs, studia, zjazd na studiach lub pojedyncze spotkanie w ramach studiów. Tabela zawiera identyfikator usługi (serviceID), nazwę usługi (serviceName), typ usługi (type - webinar, kurs, studia, zjazd, pojedyńcze spotkanie), datę rozpoczęcia (startDate) oraz cenę(price).
 
 Klucz główny: serviceID
 
 **Studies**
 
-Tabela przechowuje podstawowe dane o studiach. Zawiera identyfikator studiów (studiesID), nazwę (name) oraz liczbę zjazdów (terms).
+Tabela przechowuje podstawowe dane o studiach. Studia to wieloletnie formy kształcenia składające się z praktyk oraz zjazdów, które składają się z przedmiotów. Tabela zawiera identyfikator studiów (studiesID), nazwę (name) oraz liczbę zjazdów (terms).
 
 Klucz główny: studiesID
 
@@ -99,7 +99,7 @@ Klucz obcy: studiesID (z tabelą **Services**)
 
 **Terms**
 
-Tabela przechowuje podstawowe dane o zjeździe na studiach. Zawiera identyfikator zjazdu(termID), identyfikator studiów (studiesID), datę rozpoczęcia i zakończenia(startDate, endDate).
+Tabela przechowuje podstawowe dane o zjeździe na studiach. Zjazd na studiach to część studiów. Zjazdy składają się z przedmiotów. Tabela zawiera identyfikator zjazdu(termID), identyfikator studiów (studiesID), datę rozpoczęcia i zakończenia(startDate, endDate).
 
 Klucz główny: termID
 
@@ -115,7 +115,7 @@ Klucz obcy: termID (z tabelą **Terms**)
 
 **SubjectGrades**
 
-Tabela przechowuje informację o ocenach oraz zaliczeniu przedmiotu. Zawiera identyfikator oceny(gradeID), identyfikator przedmiotu (subjectID), identyfikator klienta (clientID) oraz informację o ocenie (grade)
+Tabela przechowuje informację o ocenach oraz zaliczeniu przedmiotu ze studiów. Zawiera identyfikator oceny(gradeID), identyfikator przedmiotu (subjectID), identyfikator klienta (clientID) oraz informację o ocenie (grade)
 
 Klucz główny: gradeID
 
@@ -123,14 +123,14 @@ Klucze obce: subjectID (z tabelą **Subjects**), clientID (z tabelą **Clients**
 
 **Employees**
 
-Tabela przechowuje podstawowe dane o pracownikach. Zawiera identyfikator pracownika
+Tabela przechowuje podstawowe dane o pracownikach. Pracownik to osoba zatrudniona przez szkołę. Są to pracownicy naukowi, tłumacze, pracownicy administracji, pracownicy ds nauki. Tabela zawiera identyfikator pracownika
 (employeeID), imię oraz nazwisko (firstName, lastName) oraz stanowisko (position).
 
 Klucz główny:  employeeID
 
 **Interpreters**
 
-Tabela przechowuje podstawowe dane o tłumaczu. Zawiera identyfikator tłumacza (interpreterID), identyfikator pracownika (employeeID) oraz język, którym się posługuje (language)
+Tabela przechowuje podstawowe dane o tłumaczu. Tłumacz to pracownik szkoły. Tabela zawiera identyfikator tłumacza (interpreterID), identyfikator pracownika (employeeID) oraz język, którym się posługuje (language)
 
 Klucz główny: interpreterID
 
@@ -138,7 +138,7 @@ Klucz obcy: employeeID (z tabelą **Employees**)
 
 **Meetings**
 
-Tabela przechowuje dane o spotkaniu. Zawiera identyfikator spotkania (meetingID), identyfikator tłumacza (interpreterID), datę i czas spotkania (datetime), link do spotkania online (meetingLink), język wykładowy (language) oraz identyfikator nagrania (recordID).
+Tabela przechowuje dane o spotkaniu. Spotkanie może odbywać się w ramach webinaru, kursu lub studiów. Zawiera identyfikator spotkania (meetingID), identyfikator tłumacza (interpreterID), datę i czas spotkania (datetime), link do spotkania online (meetingLink), język wykładowy (language) oraz identyfikator nagrania (recordID).
 
 Klucz główny: meetingID
 
@@ -168,7 +168,7 @@ Klucze obce: clientID (z tabelą **Clients**), recordID (z tabelą **Recordings*
 
 **Practices**
 
-Tabela przechowuje informacje o praktykach przypisanych do danego semestru. Zawiera identyfikator praktyk (practiceID), identyfikator semestru (termID)
+Tabela przechowuje informacje o praktykach przypisanych do studiów. Praktyki odbywają się dwa razy do roku w ramach studiów.  Zawiera identyfikator praktyk (practiceID), identyfikator semestru (termID)
 
 Klucze główne: practiceID
 
@@ -186,7 +186,7 @@ Klucze główne: clientID (z tabelą **Clients**), practiceID (z tabelą **Pract
 
 **Webinars**
 
-Tabela zawiera informację o webinarach. Zawiera identyfikator webinaru (serviceID), maksymalną możliwą ilość uczestników (maxParticipants) oraz identyfikator spotkania, do którego jest przypisany (meetingID)
+Tabela zawiera informację o webinarach. Webinar to pojedyncze spotkanie. Tabela zawiera identyfikator webinaru (serviceID), maksymalną możliwą ilość uczestników (maxParticipants) oraz identyfikator spotkania, do którego jest przypisany (meetingID)
 
 Klucz główny: serviceID
 
@@ -194,7 +194,7 @@ Klucze obce: serviceID (z tabelą **Services**), meetingID (z tabelą **Meetings
 
 **Courses**
 
-Tabela zawiera informację o kursach. Zawiera identyfikator kursu (serviceID), maksymalną możliwą ilość uczestników (maxParticipants), łączną ilość spotkań na żywo w ramach kursu (totalMeetings), łączną ilość nagrań w ramach kursu (totalRecords)
+Tabela zawiera informację o kursach. Kurs może mieć formę zdalną, stacjonarną lub hybrydową. Każdy kurs ma określoną liczbę spotkań na żywo, które odbywają się stacjonarnie lub zdalnie, oraz nagrań offline. Tabela zawiera identyfikator kursu (serviceID), maksymalną możliwą ilość uczestników (maxParticipants), łączną ilość spotkań na żywo w ramach kursu (totalMeetings), łączną ilość nagrań w ramach kursu (totalRecords)
 
 Klucz główny: serviceID
 
@@ -210,7 +210,7 @@ Klucze obce: meetingID (z tabelą **Meetings**), serviceID (z tabelą **Courses*
 
 **CoursesRecords**
 
-Tabela zawiera informacje o poszczególnych nagraniach w ramach kursu. Zawiera identyfikator spotkania nagrania z kursu (courseRecordID), identyfikator nagrania (recordID) oraz identyfikator kursu (serviceID)
+Tabela zawiera informacje o poszczególnych nagraniach w ramach kursu. Zawiera identyfikator  nagrania z kursu (courseRecordID), identyfikator nagrania (recordID) oraz identyfikator kursu (serviceID)
 
 Klucz główny: courseRecordID
 
@@ -231,6 +231,14 @@ Tabela zawiera informacje o poszczególnych spotkaniach w ramach przedmiotu. Zaw
 Klucz główny: subjectMeetingID
 
 Klucze obce: meetingID (z tabelą **Meetings**), subjectID (z tabelą **Subjects**)
+
+**SubjectsRecordings**
+
+Tabela zawiera informacje o poszczególnych nagraniach w ramach przedmiotu na studiach. Zawiera identyfikator nagrania z przedmiotu (subjectRecordingID), identyfikator nagrania (recordID) oraz identyfikator przedmiotu (subjectID)
+
+Klucz główny: courseRecordID
+
+Klucze obce: recordID (z tabelą **Recordings**), serviceID (z tabelą **Courses**)
 
 **<font  size=4>Implementacja bazy danych</font>**
 
@@ -666,75 +674,6 @@ select *
 from enrolledForStudiesMeetings
 ```
 
-Lista osób, które mają dostęp do usług za które nie zapłaciły.
-
-```sql
-CREATE VIEW ListOfDebtors AS  
-  
-with payed as  
-(select firstName, lastName, c.clientID, serviceID  
-from Clients c  
-	join Orders o on c.clientID = o.clientID  
-	join OrderDetails d on o.orderID = d.orderID  
-where o.receiptDate is not null),  
-  
-termMeetings as   
-(select t.termID, m.meetingID  
-from Terms t  
-	join Subjects s on t.termID = s.termID  
-	join SubjectsMeetings m on s.subjectID = m.subjectID),  
-  
-x as  
-(select a.clientID, a.firstName, a.lastName, b.meetingID  
-from payed a  
-	join termMeetings b on a.serviceID = b.termID),  
-  
-recC as  
-(select a.clientID, p.firstName, p.lastName  
-from Access a   
-	join CourseRecords r on a.recordID = r.recordID  
-	left join payed p on a.clientID = p.clientID and r.serviceID = p.serviceID  
-where p.clientID is null and p.serviceID is null),  
-  
-recS as  
-(select a.clientID, p.firstName, p.lastName  
-from Access a   
-	join SubjectsRecordings r on a.recordID = r.recordID  
-	join Subjects s on r.subjectID = s.subjectID  
-	left join payed p on a.clientID = p.clientID and s.termID = p.serviceID  
-where p.clientID is null and p.serviceID is null),  
-  
-meetC as  
-(select a.clientID, p.firstName, p.lastName  
-from Attendees a  
-	join CoursesMeetings c on a.meetingID = c.meetingID  
-	left join payed p on a.clientID = p.clientID and c.serviceID = p.serviceID  
-where p.clientID is null and p.serviceID is null),  
-  
-meetW as  
-(select a.clientID, p.firstName, p.lastName  
-from Attendees a  
-	join Webinars w on a.meetingID = w.meetingID  
-	left join payed p on a.clientID = p.clientID and w.serviceID = p.serviceID  
-where p.clientID is null and p.serviceID is null),  
-  
-meetS as  
-(select a.clientID, x.firstName, x.lastName  
-from Attendees a  
-	join SubjectsMeetings s on a.meetingID = s.meetingID  
-	left join x on a.clientID = x.clientID and s.meetingID = x.meetingID  
-where x.clientID is null and x.meetingID is null)  
-  
-select * from recC  
-union   
-select * from recS  
-union   
-select * from meetC  
-union   
-select * from meetW  
-union   
-select * from meetS
-```
 
 Lista dostępnych (opłaconych) spotkań w ramach webinarów.
 
@@ -922,6 +861,89 @@ select t.termID, maksi.subjectID as IdOfMostPopularSubject, maksi.subjectName as
 	join (select termID, avarage from tempAvg ) as a on a.termID=t.termID
 ```
 
+Lista osób, które zapłaciły za usługi
+
+```sql
+CREATE VIEW PayedServices
+AS
+SELECT firstName, lastName, c.clientID, serviceID 
+FROM Clients c 
+join Orders o ON c.clientID = o.clientID 
+join OrderDetails d ON o.orderID = d.orderID 
+WHERE o.receiptDate IS NOT NULL;
+```
+
+Lista osób, które korzystają z kursów których nie opłaciły
+
+```sql
+CREATE VIEW DebtorsCourses
+AS
+SELECT a.clientID, r.serviceID
+FROM Access a 
+join CourseRecords r ON a.recordID = r.recordID 
+left join PayedServices p ON a.clientID = p.clientID and r.serviceID = p.serviceID 
+WHERE p.clientID is null and p.serviceID is null
+
+UNION
+
+SELECT a.clientID, C.serviceID
+FROM Attendees a 
+JOIN CoursesMeetings c ON a.meetingID = c.meetingID 
+LEFT JOIN PayedServices p ON a.clientID = p.clientID and c.serviceID = p.serviceID 
+WHERE p.clientID is null and p.serviceID is null;
+```
+
+Lista osób, które korzystają ze spotkań na studiach za które nie zapłaciły
+
+```sql
+CREATE VIEW DebtorsSubjectMeetings
+AS
+SELECT a.clientID, s.termID
+FROM Access a 
+JOIN SubjectsRecordings r ON a.recordID = r.recordID 
+JOIN Subjects s ON r.subjectID = s.subjectID 
+LEFT JOIN PayedServices p ON a.clientID = p.clientID and s.termID = p.serviceID 
+WHERE p.clientID IS NULL and p.serviceID IS NULL
+
+UNION
+
+SELECT a.clientID, m.subjectMeetingID
+FROM Attendees a 
+JOIN SubjectsMeetings m ON a.meetingID = m.meetingID 
+JOIN Subjects s ON m.subjectID = s.subjectID
+LEFT JOIN PayedServices p on a.clientID = p.clientID and (m.subjectMeetingID = p.serviceID OR s.termID = p.serviceID)
+WHERE p.clientID IS NULL
+```
+
+
+Lista osób, które korzystają z webinarów za które nie zapłaciły
+
+```sql 
+CREATE VIEW DebtorsWebinars
+AS
+SELECT a.clientID, w.serviceID
+FROM Attendees a 
+join Webinars w ON a.meetingID = w.meetingID 
+left join PayedServices p ON a.clientID = p.clientID and w.serviceID = p.serviceID 
+WHERE p.clientID IS NULL and p.serviceID IS NULL
+```
+
+
+Lista osób, które mają dostęp do usług za które nie zapłaciły.
+
+```sql
+CREATE VIEW ListOfDebtors
+AS 
+SELECT c.clientID, c.firstName, c.lastName, d.serviceID
+FROM Clients c
+JOIN (
+    SELECT * FROM DebtorsCourses
+    UNION 
+    SELECT * FROM DebtorsWebinars
+    UNION 
+    SELECT * FROM DebtorsSubjectMeetings
+) AS d ON c.clientID = d.clientID;
+```
 
 Funkcje
 
@@ -1249,42 +1271,41 @@ end;
 Zmiana daty spotkania.
 
 ```sql
-CREATE PROCEDURE changeMeetingDate  
-    @meetingID INT,  
-    @newDate DATETIME  
-AS  
-BEGIN  
-    IF EXISTS (SELECT 1 FROM Meetings WHERE meetingID = @meetingID)  
-    BEGIN  
-        UPDATE Meetings  
-        SET datetime = @newDate  
-        WHERE meetingID = @meetingID;  
-        PRINT 'Meeting date updated successfully.';  
-    END  
-    ELSE  
-    BEGIN  
-        PRINT 'Meeting with the specified meetingID does not exist.';  
-    END  
+CREATE PROCEDURE changeMeetingDate
+@meetingID INT, 
+@newDate DATETIME 
+AS 
+BEGIN 
+	IF EXISTS (SELECT 1 FROM Meetings WHERE meetingID = @meetingID) 
+	BEGIN 
+		UPDATE Meetings 
+		SET datetime = @newDate 
+		WHERE meetingID = @meetingID; 
+	END 
+	ELSE 
+	BEGIN 
+	RAISERROR('Meeting %s does not exist.', 16, 1, @meetingID);
+	END 
 END;
 ```
 
 Zmiana dostępności danej usługi (włączenie oraz wyłączenie)
 
 ```sql
-CREATE PROCEDURE changeAvailability  
-    @serviceID CHAR(4)  
-AS  
-BEGIN  
-    IF EXISTS (SELECT 1 FROM Services WHERE serviceID = @serviceID)  
-    BEGIN  
-        UPDATE Services  
-        SET availability = ~availability   
-        WHERE serviceID = @serviceID;  
-    END  
-    ELSE  
-    BEGIN  
-        PRINT 'Service with the specified serviceID does not exist.';  
-    END  
+CREATE PROCEDURE changeAvailability
+@serviceID CHAR(4) 
+AS 
+BEGIN 
+	IF EXISTS (SELECT 1 FROM Services WHERE serviceID = @serviceID) 
+	BEGIN 
+		UPDATE Services 
+		SET availability = ~availability 
+		WHERE serviceID = @serviceID; 
+	END 
+	ELSE 
+	BEGIN 
+		RAISERROR('Service %s does not exist.', 16, 1, @serviceID);
+	END 
 END;
 ```
 
@@ -1355,60 +1376,271 @@ BEGIN
 END;
 ```
 
-Trigger aktywujący dostępność usługi jeżeli zostały wprowadzone wszystkie zaplanowane spotkania.
+Trigger wstawiający nowe nagrania kursów jeżeli nie przekraczają limitu spotkań oraz aktywujący dostępność usługi jeżeli zostały wprowadzone wszystkie spotkania i nagrania.
 
 ```sql
-CREATE TRIGGER UpdateAvailability  
-ON CoursesMeetings  
-AFTER INSERT  
-AS  
-BEGIN  
-    DECLARE @serviceID VARCHAR(4);  
-  
-    SELECT TOP 1 @serviceID = serviceID  
-    FROM inserted;  
-  
-    IF (  
-        (SELECT COUNT(*) FROM CoursesMeetings WHERE serviceID = @serviceID) =  
-        (SELECT totalMeetings FROM Courses WHERE serviceID = @serviceID)  
-       )  
-    BEGIN  
-        UPDATE Services  
-        SET availability = 1  
-        WHERE serviceID = @serviceID;  
-    END;  
+CREATE TRIGGER AfterInsertCoursesRecords
+ON CourseRecords
+AFTER INSERT 
+AS 
+BEGIN 
+    DECLARE @currentServiceID CHAR(4), @totalRecords INT, @addedRecords INT;
+
+    DECLARE serviceID_cursor CURSOR FOR
+        SELECT c.serviceID, c.totalRecords, COUNT(*) as addedRecords
+        FROM inserted i
+        JOIN Courses c ON i.serviceID = c.serviceID
+        JOIN CourseRecords r ON c.serviceID = r.serviceID
+		GROUP BY c.serviceID, c.totalRecords;
+
+    OPEN serviceID_cursor;
+    FETCH NEXT FROM serviceID_cursor INTO @currentServiceID, @totalRecords, @addedRecords;
+
+    WHILE @@FETCH_STATUS = 0
+    BEGIN
+		IF (@totalRecords is NULL)
+        BEGIN 
+			DELETE FROM CourseRecords
+			WHERE courseRecordID IN (SELECT courseRecordID FROM inserted WHERE serviceID = @currentServiceID);
+            RAISERROR('There should be no records for ServiceID %s', 16, 1, @currentServiceID);
+        END
+        ELSE IF (@totalRecords > @addedRecords)
+        BEGIN 
+            RAISERROR('Too few records for ServiceID %s', 16, 1, @currentServiceID);
+
+        END
+        ELSE IF (@totalRecords < @addedRecords)
+        BEGIN
+			DELETE FROM CourseRecords
+			WHERE courseRecordID IN (SELECT courseRecordID FROM inserted WHERE serviceID = @currentServiceID);
+            RAISERROR('Too many records for ServiceID %s', 16, 1, @currentServiceID);
+		END
+        ELSE 
+        BEGIN
+            EXEC UpdateAvailability @serviceID = @currentServiceID;
+        END
+
+        FETCH NEXT FROM serviceID_cursor INTO @currentServiceID, @totalRecords, @addedRecords;
+    END
+
+    CLOSE serviceID_cursor;
+    DEALLOCATE serviceID_cursor;
 END;
 ```
 
-Trigger wstawiający nowe spotkania jeżeli nie przekraczają limitu spotkań.
+Trigger wstawiający nowe spotkania kursów jeżeli nie przekraczają limitu spotkań oraz aktywujący dostępność usługi jeżeli zostały wprowadzone wszystkie spotkania i nagrania.
 
 ```sql
-CREATE TRIGGER PreventExceedingTotalMeetings  
-ON CoursesMeetings  
-INSTEAD OF INSERT  
-AS  
-BEGIN  
-    DECLARE @TotalMeetings INT;  
-  
-    SELECT @TotalMeetings = c.totalMeetings  
-    FROM inserted i  
-    JOIN Courses c ON i.serviceID = c.serviceID;  
-  
-DECLARE @serviceID VARCHAR(4);  
-  
-    SELECT TOP 1 @serviceID = serviceID  
-    FROM inserted;  
-  
-    IF ((SELECT COUNT(*) FROM CoursesMeetings WHERE (serviceID = @serviceID))   
-+ (SELECT COUNT(*) FROM inserted i WHERE (serviceID = @serviceID)) <= @TotalMeetings)  
-    BEGIN  
-        INSERT INTO CoursesMeetings (courseMeetingID, meetingID, serviceID)  
-        SELECT courseMeetingID, meetingID, serviceID  
-        FROM inserted;  
-    END  
-    ELSE  
-    BEGIN  
-        PRINT 'Exceeded the TotalMeetings limit in the Courses table.';  
-    END  
-END
+CREATE TRIGGER AfterInsertCoursesMeetings
+ON CoursesMeetings
+AFTER INSERT 
+AS 
+BEGIN 
+    DECLARE @currentServiceID CHAR(4), @totalMeetings INT, @plannedMeetings INT;
+
+    DECLARE serviceID_cursor CURSOR FOR
+        SELECT c.serviceID, c.totalMeetings, COUNT(*) as plannedMeetings
+        FROM inserted i
+        JOIN Courses c ON i.serviceID = c.serviceID
+        JOIN CoursesMeetings m ON c.serviceID = m.serviceID
+		GROUP BY c.serviceID, c.totalMeetings;
+
+    OPEN serviceID_cursor;
+    FETCH NEXT FROM serviceID_cursor INTO @currentServiceID, @totalMeetings, @plannedMeetings;
+
+    WHILE @@FETCH_STATUS = 0
+    BEGIN
+		IF (@totalMeetings is NULL)
+        BEGIN 
+			DELETE FROM CoursesMeetings
+			WHERE courseMeetingID IN (SELECT courseMeetingID FROM inserted WHERE serviceID = @currentServiceID);
+            RAISERROR('There should be no meetings for ServiceID %s', 16, 1, @currentServiceID);
+        END
+        ELSE IF (@totalMeetings > @plannedMeetings)
+        BEGIN 
+            RAISERROR('Too few meetings for ServiceID %s', 16, 1, @currentServiceID);
+
+        END
+        ELSE IF (@totalMeetings < @plannedMeetings)
+        BEGIN
+			DELETE FROM CoursesMeetings
+			WHERE courseMeetingID IN (SELECT courseMeetingID FROM inserted WHERE serviceID = @currentServiceID);
+            RAISERROR('Too many meetings for ServiceID %s', 16, 1, @currentServiceID);
+		END
+        ELSE 
+        BEGIN
+            EXEC UpdateAvailability @serviceID = @currentServiceID;
+        END
+
+        FETCH NEXT FROM serviceID_cursor INTO @currentServiceID, @totalMeetings, @plannedMeetings;
+    END
+
+    CLOSE serviceID_cursor;
+    DEALLOCATE serviceID_cursor;
+END;
 ```
+
+
+**<font  size=4>Indeksy</font>**
+
+**<font  size=4>Access</font>**
+
+Na identyfikatorze klienta (clientID)
+
+```sql
+CREATE NONCLUSTERED INDEX Access_ClientID ON Access (clientID);
+```
+
+Na identyfikatorze nagrania (recordID)
+
+```sql
+CREATE NONCLUSTERED INDEX Access_RecordID ON Access (recordID);
+```
+
+
+**<font  size=4>Attendees</font>**
+
+Na identyfikatorze klienta (clientID)
+
+```sql
+CREATE NONCLUSTERED INDEX Attendees_clientID ON Attendees (clientID);
+```
+
+Na identyfikatorze spotkania (meetingID)
+
+```sql
+CREATE NONCLUSTERED INDEX Attendees_meetingID ON Attendees(meetingID);
+```
+
+**<font  size=4>Clients</font>**
+
+Na identyfikatorze klienta (clientID)
+
+```sql
+CREATE UNIQUE NONCLUSTERED INDEX Clients_clientID ON Clients (clientID);
+```
+
+Na imieniu i nazwisku (firstName, lastName)
+
+```sql
+CREATE NONCLUSTERED INDEX Clients_name ON Clients (firstName, lastName);
+```
+
+Na adresie klienta (city, region)
+
+```sql
+CREATE NONCLUSTERED INDEX Clients_location ON Clients (city, region);
+```
+
+
+**<font  size=4>CourseGrade</font>**
+
+Na identyfikatorze klienta (clientID)
+
+```sql
+CREATE NONCLUSTERED INDEX CourseGrades_clientID ON CourseGrade (clientID);
+```
+
+Na statusie kursu (passed)
+
+```sql
+CREATE NONCLUSTERED INDEX CourseGrades_passed ON CourseGrade (passed);
+```
+
+Na identyfikatorze usługi (serviceID)
+
+```sql
+CREATE NONCLUSTERED INDEX CourseGrades_serviceID ON CourseGrade (serviceID);
+```
+
+**<font  size=4>Employees</font>**
+
+Na identyfikatorze pracownika (employeeID)
+
+```sql
+CREATE UNIQUE NONCLUSTERED INDEX Employees_employeeID ON Employees (employeeID);
+```
+
+Na imieniu i nazwisku (firstName, lastName)
+
+```sql
+CREATE UNIQUE NONCLUSTERED INDEX Employees_employeeID ON Employees (employeeID);
+```
+
+Na pozycji pracownika (position)
+
+```sql
+CREATE NONCLUSTERED INDEX Employees_position ON Employees (position);
+```
+
+
+**<font  size=4>IndividualInternship</font>**
+
+Na identyfikatorze klienta (clientID)
+
+```sql
+CREATE NONCLUSTERED INDEX Internships_clientID ON IndividualInternship (ClientID);
+```
+
+Na datach rozpoczęcia i zakończenia stażu (StartDate, EndDate)
+
+```sql
+CREATE NONCLUSTERED INDEX Internships_date ON IndividualInternship (StartDate, EndDate);
+```
+
+
+**<font  size=4>Interpreters</font>**
+
+Na identyfikatorze pracownika (employeeID)
+
+```sql
+CREATE NONCLUSTERED INDEX Interpreters_EmployeeID ON Interpreters (employeeID);
+```
+
+Na język, którym posługuje się tłumacz (language)
+
+```sql
+CREATE NONCLUSTERED INDEX Interpreters_Language ON Interpreters (language);
+```
+
+**<font  size=4>Meetings</font>**
+
+Na dacie spotkania (datetime)
+
+```sql
+CREATE NONCLUSTERED INDEX Meetings_date ON Meetings (datetime);
+```
+
+Na język,  w którym jest prowadzone spotkanie (language)
+
+```sql
+CREATE NONCLUSTERED INDEX Meetings_language ON Meetings (language);
+```
+
+Na indentyfikator spotkania (meetingID)
+
+```sql
+CREATE NONCLUSTERED INDEX Meetings_meetingID ON Meetings (meetingID);
+```
+
+
+**<font  size=4>SubjectGrades</font>**
+
+Na identyfikatorze klienta (clientID)
+
+```sql
+CREATE NONCLUSTERED INDEX SubjectGrades_clientID ON SubjectGrades (clientID);
+```
+
+Na oceny przedmiotów ze studiów (grade)
+
+```sql
+CREATE NONCLUSTERED INDEX SubjectGrades_grades ON SubjectGrades (grade);
+```
+
+Na indentyfikator przedmiotu ze studiów (subjectID)
+
+```sql
+CREATE NONCLUSTERED INDEX SubjectGrades_subjectID ON SubjectGrades (subjectID);
+```
+
