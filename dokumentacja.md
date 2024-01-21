@@ -72,6 +72,8 @@ Klucz główny: orderID
 
 Klucz obcy: clientID (z tabelą clients)
 
+<div style="page-break-after: always;"></div>
+
 **OrderDetails**
 
 Tabela przechowuje szczegółowe dane o zamówieniu. Można zamówić webinar, kurs, studia, zjazd na studiach lub pojedyncze spotkanie w ramach studiów. Zawiera identyfikator zamówienia
@@ -94,8 +96,6 @@ Tabela przechowuje podstawowe dane o studiach. Studia to wieloletnie formy kszta
 Klucz główny: studiesID
 
 Klucz obcy: studiesID (z tabelą **Services**)
-
-<div style="page-break-after: always;"></div>
 
 **Terms**
 
@@ -182,8 +182,6 @@ Klucz główny: internshipID
 
 Klucze główne: clientID (z tabelą **Clients**), practiceID (z tabelą **Practices**)
 
-<div style="page-break-after: always;"></div>
-
 **Webinars**
 
 Tabela zawiera informację o webinarach. Webinar to pojedyncze spotkanie. Tabela zawiera identyfikator webinaru (serviceID), maksymalną możliwą ilość uczestników (maxParticipants) oraz identyfikator spotkania, do którego jest przypisany (meetingID)
@@ -239,6 +237,8 @@ Tabela zawiera informacje o poszczególnych nagraniach w ramach przedmiotu na st
 Klucz główny: courseRecordID
 
 Klucze obce: recordID (z tabelą **Recordings**), serviceID (z tabelą **Courses**)
+
+<div style="page-break-after: always;"></div>
 
 **<font  size=4>Implementacja bazy danych</font>**
 
@@ -1098,7 +1098,6 @@ FROM            dbo.Attendees AS A INNER JOIN
 WHERE        (M.datetime > GETDATE())
 GROUP BY CM.meetingID, S.serviceName
 ```
-<div style="page-break-after: always;"></div>
 
 Raport zwracający informację o liczbie zapisanych osób na przyszłe spotkania ze studiów.
 
@@ -1287,6 +1286,8 @@ create view SingleMeetingFrequentionReport as
 	group by m.meetingID, datetime
 ```
 
+<div style="page-break-after: always;"></div>
+
 Frekwencja w ramach przedmiotów.
 
 ```sql
@@ -1413,7 +1414,7 @@ JOIN (
 ) AS d ON c.clientID = d.clientID;
 ```
 
-Funkcje
+**<font  size=4>Funkcje</font>**
 
 Funkcja zwracająca tabelę z wszystkimi ID meetingów dla danego kursu (potrzebne do innych procedur)
 
@@ -1460,6 +1461,7 @@ RETURN (
 	where S.serviceID = @serviceID
 );
 ```
+<div style="page-break-after: always;"></div>
 
 Funkcja zwracająca tabelę z wszystkimi ID meetingów dla danego semestru (zjazdu) w ramach studiów(potrzebne do innych procedur)
 
