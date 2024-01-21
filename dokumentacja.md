@@ -246,13 +246,33 @@ Do utworzenia bazy danych wraz z wszystkimi połączeniami użyta została nast�
 
 ```sql
 -- Table: Access
-CREATE TABLE Access (
-    clientID int  NOT NULL,
-    recordID int  NOT NULL,
-    lastDay date  NOT NULL,
-    status int  NULL,
-    CONSTRAINT Access_pk PRIMARY KEY  (clientID,recordID)
-);
+CREATE TABLE [dbo].[Access](
+	[clientID] [int] NOT NULL,
+	[recordID] [int] NOT NULL,
+	[lastDay] [date] NOT NULL,
+	[status] [bit] NULL,
+ CONSTRAINT [Access_pk] PRIMARY KEY CLUSTERED 
+(
+	[clientID] ASC,
+	[recordID] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+
+ALTER TABLE [dbo].[Access]  WITH CHECK ADD  CONSTRAINT [Access_Clients] FOREIGN KEY([clientID])
+REFERENCES [dbo].[Clients] ([clientID])
+GO
+
+ALTER TABLE [dbo].[Access] CHECK CONSTRAINT [Access_Clients]
+GO
+
+ALTER TABLE [dbo].[Access]  WITH CHECK ADD  CONSTRAINT [access_recordings] FOREIGN KEY([recordID])
+REFERENCES [dbo].[Recordings] ([recordID])
+GO
+
+ALTER TABLE [dbo].[Access] CHECK CONSTRAINT [access_recordings]
+GO
+
 -- Reference: Access_Clients (table: Access)
 ALTER TABLE Access ADD CONSTRAINT Access_Clients
     FOREIGN KEY (clientID)
@@ -264,14 +284,44 @@ ALTER TABLE Access ADD CONSTRAINT access_recordings
     REFERENCES Recordings (recordID);
 
 -- Table: Attendees
-CREATE TABLE Attendees (
-    attendanceID int  NOT NULL,
-    clientID int  NOT NULL,
-    meetingID int  NOT NULL,
-    present int  NULL,
-    substituteAttendanceID int  NULL,
-    CONSTRAINT Attendees_pk PRIMARY KEY  (attendanceID)
-);
+CREATE TABLE [dbo].[Attendees](
+	[attendanceID] [int] IDENTITY(1,1) NOT NULL,
+	[clientID] [int] NOT NULL,
+	[meetingID] [int] NOT NULL,
+	[present] [bit] NULL,
+	[substituteAttendanceID] [int] NULL,
+ CONSTRAINT [Attendees_pk] PRIMARY KEY CLUSTERED 
+(
+	[attendanceID] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY],
+ CONSTRAINT [Unique_Attendee_Per_Meeting_Client] UNIQUE NONCLUSTERED 
+(
+	[clientID] ASC,
+	[meetingID] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+
+ALTER TABLE [dbo].[Attendees]  WITH CHECK ADD  CONSTRAINT [attendees_attendees] FOREIGN KEY([substituteAttendanceID])
+REFERENCES [dbo].[Attendees] ([attendanceID])
+GO
+
+ALTER TABLE [dbo].[Attendees] CHECK CONSTRAINT [attendees_attendees]
+GO
+
+ALTER TABLE [dbo].[Attendees]  WITH CHECK ADD  CONSTRAINT [Attendees_Clients] FOREIGN KEY([clientID])
+REFERENCES [dbo].[Clients] ([clientID])
+GO
+
+ALTER TABLE [dbo].[Attendees] CHECK CONSTRAINT [Attendees_Clients]
+GO
+
+ALTER TABLE [dbo].[Attendees]  WITH CHECK ADD  CONSTRAINT [attendees_meeting] FOREIGN KEY([meetingID])
+REFERENCES [dbo].[Meetings] ([meetingID])
+GO
+
+ALTER TABLE [dbo].[Attendees] CHECK CONSTRAINT [attendees_meeting]
+GO
 
 -- Reference: attendees_attendees (table: Attendees)
 ALTER TABLE Attendees ADD CONSTRAINT attendees_attendees
@@ -289,24 +339,47 @@ ALTER TABLE Attendees ADD CONSTRAINT Attendees_Clients
     REFERENCES Clients (clientID);
 
 -- Table: Clients
-CREATE TABLE Clients (
-    clientID int  NOT NULL IDENTITY(1, 1),
-    firstName varchar(30)  NOT NULL,
-    lastName varchar(30)  NOT NULL,
-    adress varchar(100)  NOT NULL,
-    city varchar(50)  NOT NULL,
-    region varchar(20)  NOT NULL,
-    CONSTRAINT Clients_pk PRIMARY KEY  (clientID)
-);
+CREATE TABLE [dbo].[Clients](
+	[clientID] [int] IDENTITY(1,1) NOT NULL,
+	[firstName] [nvarchar](30) NOT NULL,
+	[lastName] [nvarchar](30) NOT NULL,
+	[address] [nvarchar](100) NOT NULL,
+	[city] [nvarchar](50) NOT NULL,
+	[region] [nvarchar](20) NOT NULL,
+ CONSTRAINT [Clients_pk] PRIMARY KEY CLUSTERED 
+(
+	[clientID] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
 
 -- Table: CourseGrade
-CREATE TABLE CourseGrade (
-    gradeID int  NOT NULL IDENTITY(1, 1),
-    serviceID char(4)  NOT NULL,
-    clientID int  NOT NULL,
-    passed varchar(8)  NULL,
-    CONSTRAINT CourseGrade_pk PRIMARY KEY  (gradeID)
-);
+CREATE TABLE [dbo].[CourseGrade](
+	[gradeID] [int] IDENTITY(1,1) NOT NULL,
+	[serviceID] [char](4) NOT NULL,
+	[clientID] [int] NOT NULL,
+	[passed] [bit] NULL,
+ CONSTRAINT [CourseGrade_pk] PRIMARY KEY CLUSTERED 
+(
+	[gradeID] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+
+ALTER TABLE [dbo].[CourseGrade]  WITH CHECK ADD  CONSTRAINT [CourseGrade_Clients] FOREIGN KEY([clientID])
+REFERENCES [dbo].[Clients] ([clientID])
+GO
+
+ALTER TABLE [dbo].[CourseGrade] CHECK CONSTRAINT [CourseGrade_Clients]
+GO
+
+ALTER TABLE [dbo].[CourseGrade]  WITH CHECK ADD  CONSTRAINT [CourseGrade_Courses] FOREIGN KEY([serviceID])
+REFERENCES [dbo].[Courses] ([serviceID])
+GO
+
+ALTER TABLE [dbo].[CourseGrade] CHECK CONSTRAINT [CourseGrade_Courses]
+GO
+
 -- Reference: CourseGrade_Courses (table: CourseGrade)
 ALTER TABLE CourseGrade ADD CONSTRAINT CourseGrade_Courses
     FOREIGN KEY (serviceID)
@@ -318,12 +391,30 @@ ALTER TABLE CourseGrade ADD CONSTRAINT CourseGrade_Clients
     REFERENCES Clients (clientID);
 
 -- Table: CourseRecords
-CREATE TABLE CourseRecords (
-    courseRecordID char(4)  NOT NULL,
-    recordID int  NOT NULL,
-    serviceID char(4)  NOT NULL,
-    CONSTRAINT CourseRecords_pk PRIMARY KEY  (courseRecordID)
-);
+CREATE TABLE [dbo].[CourseRecords](
+	[courseRecordID] [char](4) NOT NULL,
+	[recordID] [int] NOT NULL,
+	[serviceID] [char](4) NOT NULL,
+ CONSTRAINT [CourseRecords_pk] PRIMARY KEY CLUSTERED 
+(
+	[courseRecordID] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+
+ALTER TABLE [dbo].[CourseRecords]  WITH CHECK ADD  CONSTRAINT [Courses_CourseRecords] FOREIGN KEY([serviceID])
+REFERENCES [dbo].[Courses] ([serviceID])
+GO
+
+ALTER TABLE [dbo].[CourseRecords] CHECK CONSTRAINT [Courses_CourseRecords]
+GO
+
+ALTER TABLE [dbo].[CourseRecords]  WITH CHECK ADD  CONSTRAINT [Recordings_CourseRecords] FOREIGN KEY([recordID])
+REFERENCES [dbo].[Recordings] ([recordID])
+GO
+
+ALTER TABLE [dbo].[CourseRecords] CHECK CONSTRAINT [Recordings_CourseRecords]
+GO
 
 -- Reference: Recordings_CourseRecords (table: CourseRecords)
 ALTER TABLE CourseRecords ADD CONSTRAINT Recordings_CourseRecords
@@ -336,13 +427,35 @@ ALTER TABLE CourseRecords ADD CONSTRAINT Courses_CourseRecords
     REFERENCES Courses (serviceID);
 
 -- Table: Courses
-CREATE TABLE Courses (
-    serviceID char(4)  NOT NULL,
-    maxParticipants int  NULL,
-    totalMeetings int  NULL,
-    totalRecords int  NULL,
-    CONSTRAINT Courses_pk PRIMARY KEY  (serviceID)
-);
+CREATE TABLE [dbo].[Courses](
+	[serviceID] [char](4) NOT NULL,
+	[totalMeetings] [int] NULL,
+	[totalRecords] [int] NULL,
+ CONSTRAINT [Courses_pk] PRIMARY KEY CLUSTERED 
+(
+	[serviceID] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+
+ALTER TABLE [dbo].[Courses]  WITH CHECK ADD  CONSTRAINT [courseDetails_services] FOREIGN KEY([serviceID])
+REFERENCES [dbo].[Services] ([serviceID])
+GO
+
+ALTER TABLE [dbo].[Courses] CHECK CONSTRAINT [courseDetails_services]
+GO
+
+ALTER TABLE [dbo].[Courses]  WITH CHECK ADD  CONSTRAINT [coursesContentCheck] CHECK  ((NOT ([totalMeetings] IS NULL AND [totalRecords] IS NULL) AND ([totalMeetings] IS NULL AND [totalRecords]>(0) OR [totalRecords] IS NULL AND [totalMeetings]>(0) OR [totalRecords] IS NOT NULL AND [totalMeetings] IS NOT NULL AND ([totalRecords]+[totalMeetings])>(0))))
+GO
+
+ALTER TABLE [dbo].[Courses] CHECK CONSTRAINT [coursesContentCheck]
+GO
+
+ALTER TABLE [dbo].[Courses]  WITH CHECK ADD  CONSTRAINT [CoursesServiceIDLetterCheck] CHECK  ((isnumeric(left([serviceID],(1)))<>(1)))
+GO
+
+ALTER TABLE [dbo].[Courses] CHECK CONSTRAINT [CoursesServiceIDLetterCheck]
+GO
 
 -- Reference: courseDetails_services (table: Courses)
 ALTER TABLE Courses ADD CONSTRAINT courseDetails_services
@@ -350,12 +463,30 @@ ALTER TABLE Courses ADD CONSTRAINT courseDetails_services
     REFERENCES Services (serviceID);
 
 -- Table: CoursesMeetings
-CREATE TABLE CoursesMeetings (
-    courseMeetingID char(4)  NOT NULL,
-    meetingID int  NOT NULL,
-    serviceID char(4)  NOT NULL,
-    CONSTRAINT CoursesMeetings_pk PRIMARY KEY  (courseMeetingID)
-);
+CREATE TABLE [dbo].[CoursesMeetings](
+	[courseMeetingID] [char](4) NOT NULL,
+	[meetingID] [int] NOT NULL,
+	[serviceID] [char](4) NOT NULL,
+ CONSTRAINT [CoursesMeetings_pk] PRIMARY KEY CLUSTERED 
+(
+	[courseMeetingID] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+
+ALTER TABLE [dbo].[CoursesMeetings]  WITH CHECK ADD  CONSTRAINT [Meetings_Workshops] FOREIGN KEY([meetingID])
+REFERENCES [dbo].[Meetings] ([meetingID])
+GO
+
+ALTER TABLE [dbo].[CoursesMeetings] CHECK CONSTRAINT [Meetings_Workshops]
+GO
+
+ALTER TABLE [dbo].[CoursesMeetings]  WITH CHECK ADD  CONSTRAINT [Workshops_ServiceDetails] FOREIGN KEY([serviceID])
+REFERENCES [dbo].[Courses] ([serviceID])
+GO
+
+ALTER TABLE [dbo].[CoursesMeetings] CHECK CONSTRAINT [Workshops_ServiceDetails]
+GO
 
 -- Reference: Workshops_ServiceDetails (table: CoursesMeetings)
 ALTER TABLE CoursesMeetings ADD CONSTRAINT Workshops_ServiceDetails
@@ -368,24 +499,52 @@ ALTER TABLE CoursesMeetings ADD CONSTRAINT Meetings_Workshops
     REFERENCES Meetings (meetingID);
 
 -- Table: Employees
-CREATE TABLE Employees (
-    employeeID int  NOT NULL IDENTITY(1, 1),
-    firstName varchar(30)  NOT NULL,
-    lastName varchar(30)  NOT NULL,
-    position varchar(100)  NOT NULL,
-    CONSTRAINT Employees_pk PRIMARY KEY  (employeeID)
-);
+CREATE TABLE [dbo].[Employees](
+	[employeeID] [int] IDENTITY(1,1) NOT NULL,
+	[firstName] [nvarchar](30) NOT NULL,
+	[lastName] [nvarchar](30) NOT NULL,
+	[position] [nvarchar](100) NOT NULL,
+ CONSTRAINT [Employees_pk] PRIMARY KEY CLUSTERED 
+(
+	[employeeID] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
 
 -- Table: IndividualInternship
-CREATE TABLE IndividualInternship (
-    InternshipID int  NOT NULL IDENTITY(1, 1),
-    ClientID int  NOT NULL,
-    PracticeID int  NOT NULL,
-    StartDate datetime  NOT NULL,
-    EndDate datetime  NOT NULL,
-    Passed int  NOT NULL,
-    CONSTRAINT IndividualInternship_pk PRIMARY KEY  (InternshipID)
-);
+CREATE TABLE [dbo].[IndividualInternship](
+	[InternshipID] [int] IDENTITY(1,1) NOT NULL,
+	[ClientID] [int] NOT NULL,
+	[PracticeID] [int] NOT NULL,
+	[StartDate] [datetime] NOT NULL,
+	[EndDate] [datetime] NOT NULL,
+	[Passed] [bit] NULL,
+ CONSTRAINT [IndividualInternship_pk] PRIMARY KEY CLUSTERED 
+(
+	[InternshipID] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+
+ALTER TABLE [dbo].[IndividualInternship]  WITH CHECK ADD  CONSTRAINT [Clients_IndividualInternship] FOREIGN KEY([ClientID])
+REFERENCES [dbo].[Clients] ([clientID])
+GO
+
+ALTER TABLE [dbo].[IndividualInternship] CHECK CONSTRAINT [Clients_IndividualInternship]
+GO
+
+ALTER TABLE [dbo].[IndividualInternship]  WITH CHECK ADD  CONSTRAINT [IndividualInternship_Practices] FOREIGN KEY([PracticeID])
+REFERENCES [dbo].[Practices] ([PracticeID])
+GO
+
+ALTER TABLE [dbo].[IndividualInternship] CHECK CONSTRAINT [IndividualInternship_Practices]
+GO
+
+ALTER TABLE [dbo].[IndividualInternship]  WITH CHECK ADD  CONSTRAINT [lengthOfInternshipCheck] CHECK  ((datediff(day,[startdate],[enddate])=(14)))
+GO
+
+ALTER TABLE [dbo].[IndividualInternship] CHECK CONSTRAINT [lengthOfInternshipCheck]
+GO
 
 -- Reference: Clients_IndividualInternship (table: IndividualInternship)
 ALTER TABLE IndividualInternship ADD CONSTRAINT Clients_IndividualInternship
@@ -398,12 +557,23 @@ ALTER TABLE IndividualInternship ADD CONSTRAINT IndividualInternship_Practices
     REFERENCES Practices (PracticeID);
 
 -- Table: Interpreters
-CREATE TABLE Interpreters (
-    interpreterID int  NOT NULL IDENTITY(1, 1),
-    language varchar(30)  NOT NULL,
-    employeeID int  NOT NULL,
-    CONSTRAINT Interpreters_pk PRIMARY KEY  (interpreterID)
-);
+CREATE TABLE [dbo].[Interpreters](
+	[interpreterID] [int] IDENTITY(1,1) NOT NULL,
+	[language] [varchar](30) NOT NULL,
+	[employeeID] [int] NOT NULL,
+ CONSTRAINT [Interpreters_pk] PRIMARY KEY CLUSTERED 
+(
+	[interpreterID] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+
+ALTER TABLE [dbo].[Interpreters]  WITH CHECK ADD  CONSTRAINT [interpreters_employees] FOREIGN KEY([employeeID])
+REFERENCES [dbo].[Employees] ([employeeID])
+GO
+
+ALTER TABLE [dbo].[Interpreters] CHECK CONSTRAINT [interpreters_employees]
+GO
 
 -- Reference: interpreters_employees (table: Interpreters)
 ALTER TABLE Interpreters ADD CONSTRAINT interpreters_employees
@@ -411,16 +581,41 @@ ALTER TABLE Interpreters ADD CONSTRAINT interpreters_employees
     REFERENCES Employees (employeeID);
 
 -- Table: Meetings
-CREATE TABLE Meetings (
-    meetingID int  NOT NULL,
-    tutorID int  NOT NULL,
-    interpreterID int  NULL,
-    datetime datetime  NOT NULL,
-    meetingLink varchar(100)  NULL,
-    Language varchar(20)  NOT NULL,
-    recordID int  NULL,
-    CONSTRAINT Meetings_pk PRIMARY KEY  (meetingID)
-);
+CREATE TABLE [dbo].[Meetings](
+	[meetingID] [int] NOT NULL,
+	[tutorID] [int] NOT NULL,
+	[interpreterID] [int] NULL,
+	[datetime] [datetime] NOT NULL,
+	[meetingLink] [varchar](100) NULL,
+	[Language] [varchar](20) NOT NULL,
+	[recordID] [int] NULL,
+ CONSTRAINT [Meetings_pk] PRIMARY KEY CLUSTERED 
+(
+	[meetingID] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+
+ALTER TABLE [dbo].[Meetings]  WITH CHECK ADD  CONSTRAINT [meeting_interpreters] FOREIGN KEY([interpreterID])
+REFERENCES [dbo].[Interpreters] ([interpreterID])
+GO
+
+ALTER TABLE [dbo].[Meetings] CHECK CONSTRAINT [meeting_interpreters]
+GO
+
+ALTER TABLE [dbo].[Meetings]  WITH CHECK ADD  CONSTRAINT [Meetings_Employees] FOREIGN KEY([tutorID])
+REFERENCES [dbo].[Employees] ([employeeID])
+GO
+
+ALTER TABLE [dbo].[Meetings] CHECK CONSTRAINT [Meetings_Employees]
+GO
+
+ALTER TABLE [dbo].[Meetings]  WITH CHECK ADD  CONSTRAINT [recordings_meeting] FOREIGN KEY([recordID])
+REFERENCES [dbo].[Recordings] ([recordID])
+GO
+
+ALTER TABLE [dbo].[Meetings] CHECK CONSTRAINT [recordings_meeting]
+GO
 
 -- Reference: meeting_interpreters (table: Meetings)
 ALTER TABLE Meetings ADD CONSTRAINT meeting_interpreters
@@ -439,12 +634,46 @@ ALTER TABLE Meetings ADD CONSTRAINT Meetings_Employees
     REFERENCES Employees (employeeID);
 
 -- Table: OrderDetails
-CREATE TABLE OrderDetails (
-    orderID uniqueidentifier  NOT NULL DEFAULT NEWID(),
-    serviceID char(4)  NOT NULL,
-    price money  NOT NULL,
-    CONSTRAINT OrderDetails_pk PRIMARY KEY  (orderID,serviceID)
-);
+CREATE TABLE [dbo].[OrderDetails](
+	[orderID] [uniqueidentifier] NOT NULL,
+	[serviceID] [char](4) NOT NULL,
+	[price] [money] NOT NULL,
+ CONSTRAINT [OrderDetails_pk] PRIMARY KEY CLUSTERED 
+(
+	[orderID] ASC,
+	[serviceID] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+
+ALTER TABLE [dbo].[OrderDetails] ADD  DEFAULT (newid()) FOR [orderID]
+GO
+
+ALTER TABLE [dbo].[OrderDetails]  WITH CHECK ADD  CONSTRAINT [orderDetails_orders] FOREIGN KEY([orderID])
+REFERENCES [dbo].[Orders] ([orderID])
+GO
+
+ALTER TABLE [dbo].[OrderDetails] CHECK CONSTRAINT [orderDetails_orders]
+GO
+
+ALTER TABLE [dbo].[OrderDetails]  WITH CHECK ADD  CONSTRAINT [orderDetails_services] FOREIGN KEY([serviceID])
+REFERENCES [dbo].[Services] ([serviceID])
+GO
+
+ALTER TABLE [dbo].[OrderDetails] CHECK CONSTRAINT [orderDetails_services]
+GO
+
+ALTER TABLE [dbo].[OrderDetails]  WITH CHECK ADD  CONSTRAINT [CheckOrderDetailsPrice] CHECK  (([price]>=(0)))
+GO
+
+ALTER TABLE [dbo].[OrderDetails] CHECK CONSTRAINT [CheckOrderDetailsPrice]
+GO
+
+ALTER TABLE [dbo].[OrderDetails]  WITH CHECK ADD  CONSTRAINT [OrderDetailsServicesIDLetterCheck] CHECK  ((isnumeric(left([serviceID],(1)))<>(1)))
+GO
+
+ALTER TABLE [dbo].[OrderDetails] CHECK CONSTRAINT [OrderDetailsServicesIDLetterCheck]
+GO
 
 -- Reference: orderDetails_orders (table: OrderDetails)
 ALTER TABLE OrderDetails ADD CONSTRAINT orderDetails_orders
@@ -457,14 +686,34 @@ ALTER TABLE OrderDetails ADD CONSTRAINT orderDetails_services
     REFERENCES Services (serviceID);
 
 -- Table: Orders
-CREATE TABLE Orders (
-    orderID uniqueidentifier  NOT NULL,
-    clientID int  NOT NULL,
-    orderDate datetime  NULL,
-    paymentLink varchar(100)  NOT NULL,
-    receiptDate datetime  NULL,
-    CONSTRAINT Orders_pk PRIMARY KEY  (orderID)
-);
+CREATE TABLE [dbo].[Orders](
+	[orderID] [uniqueidentifier] NOT NULL,
+	[clientID] [int] NOT NULL,
+	[orderDate] [datetime] NULL,
+	[paymentLink] [varchar](100) NOT NULL,
+	[receiptDate] [datetime] NULL,
+ CONSTRAINT [Orders_pk] PRIMARY KEY CLUSTERED 
+(
+	[orderID] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+
+ALTER TABLE [dbo].[Orders] ADD  CONSTRAINT [DF_Orders_ID]  DEFAULT (newid()) FOR [orderID]
+GO
+
+ALTER TABLE [dbo].[Orders]  WITH CHECK ADD  CONSTRAINT [orders_clients] FOREIGN KEY([clientID])
+REFERENCES [dbo].[Clients] ([clientID])
+GO
+
+ALTER TABLE [dbo].[Orders] CHECK CONSTRAINT [orders_clients]
+GO
+
+ALTER TABLE [dbo].[Orders]  WITH CHECK ADD  CONSTRAINT [CheckOrderDates] CHECK  (([orderDate] IS NULL AND [receiptDate] IS NULL OR [receiptDate] IS NULL OR [receiptDate]>=[orderDate]))
+GO
+
+ALTER TABLE [dbo].[Orders] CHECK CONSTRAINT [CheckOrderDates]
+GO
 
 -- Reference: orders_clients (table: Orders)
 ALTER TABLE Orders ADD CONSTRAINT orders_clients
@@ -472,42 +721,97 @@ ALTER TABLE Orders ADD CONSTRAINT orders_clients
     REFERENCES Clients (clientID);
 
 -- Table: Practices
-CREATE TABLE Practices (
-    PracticeID int  NOT NULL IDENTITY(1, 1),
-    termID char(4)  NOT NULL,
-    CONSTRAINT Practices_pk PRIMARY KEY  (PracticeID)
-);
+CREATE TABLE [dbo].[Practices](
+	[PracticeID] [int] IDENTITY(1,1) NOT NULL,
+	[studiesID] [char](4) NULL,
+ CONSTRAINT [Practices_pk] PRIMARY KEY CLUSTERED 
+(
+	[PracticeID] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
 
--- Reference: Practices_Terms (table: Practices)
-ALTER TABLE Practices ADD CONSTRAINT Practices_Terms
-    FOREIGN KEY (termID)
-    REFERENCES Terms (termID);
+ALTER TABLE [dbo].[Practices]  WITH CHECK ADD  CONSTRAINT [Studies_Pracices] FOREIGN KEY([studiesID])
+REFERENCES [dbo].[Studies] ([studiesID])
+GO
+
+ALTER TABLE [dbo].[Practices] CHECK CONSTRAINT [Studies_Pracices]
+GO
+
+-- Reference: Studies_Practices (table: Practices)
+ALTER TABLE Practices ADD CONSTRAINT Studies_Practices
+    FOREIGN KEY (studiesID)
+    REFERENCES Studies (studiesID);
 
 -- Table: Recordings
-CREATE TABLE Recordings (
-    recordID int  NOT NULL IDENTITY(1, 1),
-    recordLink varchar(100)  NOT NULL,
-    CONSTRAINT Recordings_pk PRIMARY KEY  (recordID)
-);
+CREATE TABLE [dbo].[Recordings](
+	[recordID] [int] IDENTITY(1,1) NOT NULL,
+	[recordLink] [varchar](100) NOT NULL,
+ CONSTRAINT [Recordings_pk] PRIMARY KEY CLUSTERED 
+(
+	[recordID] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
 
-<<<<<<< HEAD:dokumentacja.md
 -- Table: Services
-CREATE TABLE Services (
-    serviceID char(4)  NOT NULL,
-    serviceName varchar(50)  NOT NULL,
-    type varchar(10)  NOT NULL,
-    startDate datetime  NOT NULL,
-    price money  NOT NULL,
-    CONSTRAINT Services_pk PRIMARY KEY  (serviceID)
-);
+CREATE TABLE [dbo].[Services](
+	[serviceID] [char](4) NOT NULL,
+	[serviceName] [nvarchar](50) NOT NULL,
+	[type] [varchar](10) NOT NULL,
+	[startDate] [datetime] NOT NULL,
+	[price] [money] NOT NULL,
+	[availability] [bit] NOT NULL,
+	[maxParticipants] [int] NULL,
+ CONSTRAINT [Services_pk] PRIMARY KEY CLUSTERED 
+(
+	[serviceID] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+
+ALTER TABLE [dbo].[Services]  WITH CHECK ADD  CONSTRAINT [CheckParticipants] CHECK  (([maxParticipants]>=(0)))
+GO
+
+ALTER TABLE [dbo].[Services] CHECK CONSTRAINT [CheckParticipants]
+GO
+
+ALTER TABLE [dbo].[Services]  WITH CHECK ADD  CONSTRAINT [CheckPrice] CHECK  (([price]>=(0)))
+GO
+
+ALTER TABLE [dbo].[Services] CHECK CONSTRAINT [CheckPrice]
+GO
+
+ALTER TABLE [dbo].[Services]  WITH CHECK ADD  CONSTRAINT [ServicesIDLetterCheck] CHECK  ((isnumeric(left([serviceID],(1)))<>(1)))
+GO
+
+ALTER TABLE [dbo].[Services] CHECK CONSTRAINT [ServicesIDLetterCheck]
+GO
 
 -- Table: Studies
-CREATE TABLE Studies (
-    studiesID char(4)  NOT NULL,
-    name varchar(50)  NOT NULL,
-    terms int  NOT NULL,
-    CONSTRAINT Studies_pk PRIMARY KEY  (studiesID)
-);
+CREATE TABLE [dbo].[Studies](
+	[studiesID] [char](4) NOT NULL,
+	[name] [nvarchar](50) NOT NULL,
+	[terms] [int] NOT NULL,
+ CONSTRAINT [Studies_pk] PRIMARY KEY CLUSTERED 
+(
+	[studiesID] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+
+ALTER TABLE [dbo].[Studies]  WITH CHECK ADD  CONSTRAINT [studies_services] FOREIGN KEY([studiesID])
+REFERENCES [dbo].[Services] ([serviceID])
+GO
+
+ALTER TABLE [dbo].[Studies] CHECK CONSTRAINT [studies_services]
+GO
+
+ALTER TABLE [dbo].[Studies]  WITH CHECK ADD  CONSTRAINT [StudiesIDLetterCheck] CHECK  ((isnumeric(left([studiesID],(1)))<>(1)))
+GO
+
+ALTER TABLE [dbo].[Studies] CHECK CONSTRAINT [StudiesIDLetterCheck]
+GO
 
 -- Reference: studies_services (table: Studies)
 ALTER TABLE Studies ADD CONSTRAINT studies_services
@@ -515,13 +819,37 @@ ALTER TABLE Studies ADD CONSTRAINT studies_services
     REFERENCES Services (serviceID);
 
 -- Table: SubjectGrades
-CREATE TABLE SubjectGrades (
-    gradeID int  NOT NULL IDENTITY(1, 1),
-    subjectID char(4)  NOT NULL,
-    clientID int  NOT NULL,
-    grade int  NULL,
-    CONSTRAINT SubjectGrades_pk PRIMARY KEY  (gradeID)
-);
+CREATE TABLE [dbo].[SubjectGrades](
+	[gradeID] [int] IDENTITY(1,1) NOT NULL,
+	[subjectID] [char](4) NOT NULL,
+	[clientID] [int] NOT NULL,
+	[grade] [int] NULL,
+ CONSTRAINT [SubjectGrades_pk] PRIMARY KEY CLUSTERED 
+(
+	[gradeID] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+
+ALTER TABLE [dbo].[SubjectGrades]  WITH CHECK ADD  CONSTRAINT [Clients_Grades] FOREIGN KEY([clientID])
+REFERENCES [dbo].[Clients] ([clientID])
+GO
+
+ALTER TABLE [dbo].[SubjectGrades] CHECK CONSTRAINT [Clients_Grades]
+GO
+
+ALTER TABLE [dbo].[SubjectGrades]  WITH CHECK ADD  CONSTRAINT [grades_Course] FOREIGN KEY([subjectID])
+REFERENCES [dbo].[Subjects] ([subjectID])
+GO
+
+ALTER TABLE [dbo].[SubjectGrades] CHECK CONSTRAINT [grades_Course]
+GO
+
+ALTER TABLE [dbo].[SubjectGrades]  WITH CHECK ADD  CONSTRAINT [rangeOfGradesCheck] CHECK  (([grade] IS NULL OR [grade]>(1) AND [grade]<(6)))
+GO
+
+ALTER TABLE [dbo].[SubjectGrades] CHECK CONSTRAINT [rangeOfGradesCheck]
+GO
 
 -- Reference: Clients_Grades (table: SubjectGrades)
 ALTER TABLE SubjectGrades ADD CONSTRAINT Clients_Grades
@@ -534,13 +862,30 @@ ALTER TABLE SubjectGrades ADD CONSTRAINT grades_Course
     REFERENCES Subjects (subjectID);
 
 -- Table: Subjects
-CREATE TABLE Subjects (
-    subjectID char(4)  NOT NULL,
-    termID char(4)  NOT NULL,
-    SubjectName varchar(100)  NOT NULL,
-    type varchar(3)  NOT NULL,
-    CONSTRAINT Subjects_pk PRIMARY KEY  (subjectID)
-);
+CREATE TABLE [dbo].[Subjects](
+	[subjectID] [char](4) NOT NULL,
+	[termID] [char](4) NOT NULL,
+	[SubjectName] [varchar](100) NOT NULL,
+	[type] [varchar](3) NOT NULL,
+ CONSTRAINT [Subjects_pk] PRIMARY KEY CLUSTERED 
+(
+	[subjectID] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+
+ALTER TABLE [dbo].[Subjects]  WITH CHECK ADD  CONSTRAINT [Terms_Subjects] FOREIGN KEY([termID])
+REFERENCES [dbo].[Terms] ([termID])
+GO
+
+ALTER TABLE [dbo].[Subjects] CHECK CONSTRAINT [Terms_Subjects]
+GO
+
+ALTER TABLE [dbo].[Subjects]  WITH CHECK ADD  CONSTRAINT [SubjectIDLetterCheck] CHECK  ((isnumeric(left([subjectID],(1)))<>(1)))
+GO
+
+ALTER TABLE [dbo].[Subjects] CHECK CONSTRAINT [SubjectIDLetterCheck]
+GO
 
 -- Reference: Terms_Subjects (table: Subjects)
 ALTER TABLE Subjects ADD CONSTRAINT Terms_Subjects
@@ -548,12 +893,37 @@ ALTER TABLE Subjects ADD CONSTRAINT Terms_Subjects
     REFERENCES Terms (termID);
 
 -- Table: SubjectsMeetings
-CREATE TABLE SubjectsMeetings (
-    subjectMeetingID char(4)  NOT NULL,
-    subjectID char(4)  NOT NULL,
-    meetingID int  NOT NULL,
-    CONSTRAINT SubjectsMeetings_pk PRIMARY KEY  (subjectMeetingID)
-);
+CREATE TABLE [dbo].[SubjectsMeetings](
+	[subjectMeetingID] [char](4) NOT NULL,
+	[subjectID] [char](4) NOT NULL,
+	[meetingID] [int] NOT NULL,
+ CONSTRAINT [SubjectsMeetings_pk] PRIMARY KEY CLUSTERED 
+(
+	[subjectMeetingID] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+
+ALTER TABLE [dbo].[SubjectsMeetings]  WITH CHECK ADD  CONSTRAINT [Lectures_Services] FOREIGN KEY([subjectMeetingID])
+REFERENCES [dbo].[Services] ([serviceID])
+GO
+
+ALTER TABLE [dbo].[SubjectsMeetings] CHECK CONSTRAINT [Lectures_Services]
+GO
+
+ALTER TABLE [dbo].[SubjectsMeetings]  WITH CHECK ADD  CONSTRAINT [Meetings_Lectures] FOREIGN KEY([meetingID])
+REFERENCES [dbo].[Meetings] ([meetingID])
+GO
+
+ALTER TABLE [dbo].[SubjectsMeetings] CHECK CONSTRAINT [Meetings_Lectures]
+GO
+
+ALTER TABLE [dbo].[SubjectsMeetings]  WITH CHECK ADD  CONSTRAINT [Subjects_Lectures] FOREIGN KEY([subjectID])
+REFERENCES [dbo].[Subjects] ([subjectID])
+GO
+
+ALTER TABLE [dbo].[SubjectsMeetings] CHECK CONSTRAINT [Subjects_Lectures]
+GO
 
 -- Reference: Meetings_Lectures (table: SubjectsMeetings)
 ALTER TABLE SubjectsMeetings ADD CONSTRAINT Meetings_Lectures
@@ -570,14 +940,81 @@ ALTER TABLE SubjectsMeetings ADD CONSTRAINT Subjects_Lectures
     FOREIGN KEY (subjectID)
     REFERENCES Subjects (subjectID);
 
+-- Table: SubjectsRecordings
+
+CREATE TABLE [dbo].[SubjectsRecordings](
+	[subjectRecordingID] [char](4) NOT NULL,
+	[subjectID] [char](4) NOT NULL,
+	[recordID] [int] NOT NULL,
+ CONSTRAINT [SubjectsRecordings_pk] PRIMARY KEY CLUSTERED 
+(
+	[subjectRecordingID] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+
+ALTER TABLE [dbo].[SubjectsRecordings]  WITH CHECK ADD  CONSTRAINT [Recordings_SubjectsRecordings] FOREIGN KEY([recordID])
+REFERENCES [dbo].[Recordings] ([recordID])
+GO
+
+ALTER TABLE [dbo].[SubjectsRecordings] CHECK CONSTRAINT [Recordings_SubjectsRecordings]
+GO
+
+ALTER TABLE [dbo].[SubjectsRecordings]  WITH CHECK ADD  CONSTRAINT [SubjectsRecordings_Subjects] FOREIGN KEY([subjectID])
+REFERENCES [dbo].[Subjects] ([subjectID])
+GO
+
+ALTER TABLE [dbo].[SubjectsRecordings] CHECK CONSTRAINT [SubjectsRecordings_Subjects]
+GO
+
+-- Reference: Recordings_SubjectsRecordings (table: SubjectsRecordings)
+ALTER TABLE SubjectsRecordings ADD CONSTRAINT Recordings_SubjectsRecordings
+    FOREIGN KEY (recordID)
+    REFERENCES Recordings (recordID);
+
+-- Reference: SubjectsRecordings_Subjects (table: SubjectsRecordings)
+ALTER TABLE SubjectsRecordings ADD CONSTRAINT SubjectsRecordings_Subjects
+    FOREIGN KEY (subjectID)
+    REFERENCES Subjects (subjectID);
+
 -- Table: Terms
-CREATE TABLE Terms (
-    termID char(4)  NOT NULL,
-    studiesID char(4)  NOT NULL,
-    startDate date  NOT NULL,
-    endDate date  NOT NULL,
-    CONSTRAINT Terms_pk PRIMARY KEY  (termID)
-);
+CREATE TABLE [dbo].[Terms](
+	[termID] [char](4) NOT NULL,
+	[studiesID] [char](4) NOT NULL,
+	[startDate] [date] NOT NULL,
+	[endDate] [date] NOT NULL,
+ CONSTRAINT [Terms_pk] PRIMARY KEY CLUSTERED 
+(
+	[termID] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+
+ALTER TABLE [dbo].[Terms]  WITH CHECK ADD  CONSTRAINT [conventions_studies] FOREIGN KEY([studiesID])
+REFERENCES [dbo].[Studies] ([studiesID])
+GO
+
+ALTER TABLE [dbo].[Terms] CHECK CONSTRAINT [conventions_studies]
+GO
+
+ALTER TABLE [dbo].[Terms]  WITH CHECK ADD  CONSTRAINT [Services_Terms] FOREIGN KEY([termID])
+REFERENCES [dbo].[Services] ([serviceID])
+GO
+
+ALTER TABLE [dbo].[Terms] CHECK CONSTRAINT [Services_Terms]
+GO
+
+ALTER TABLE [dbo].[Terms]  WITH CHECK ADD  CONSTRAINT [TermsIDLetterCheck] CHECK  ((isnumeric(left([termID],(1)))<>(1)))
+GO
+
+ALTER TABLE [dbo].[Terms] CHECK CONSTRAINT [TermsIDLetterCheck]
+GO
+
+ALTER TABLE [dbo].[Terms]  WITH CHECK ADD  CONSTRAINT [timeOfTermCheck] CHECK  (([endDate]>[startDate]))
+GO
+
+ALTER TABLE [dbo].[Terms] CHECK CONSTRAINT [timeOfTermCheck]
+GO
 
 -- Reference: Services_Terms (table: Terms)
 ALTER TABLE Terms ADD CONSTRAINT Services_Terms
@@ -590,12 +1027,35 @@ ALTER TABLE Terms ADD CONSTRAINT conventions_studies
     REFERENCES Studies (studiesID);
 
 -- Table: Webinars
-CREATE TABLE Webinars (
-    serviceID char(4)  NOT NULL,
-    maxParticipants int  NOT NULL,
-    meetingID int  NOT NULL,
-    CONSTRAINT Webinars_pk PRIMARY KEY  (serviceID)
-);
+CREATE TABLE [dbo].[Webinars](
+	[serviceID] [char](4) NOT NULL,
+	[meetingID] [int] NOT NULL,
+ CONSTRAINT [Webinars_pk] PRIMARY KEY CLUSTERED 
+(
+	[serviceID] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+
+ALTER TABLE [dbo].[Webinars]  WITH CHECK ADD  CONSTRAINT [Meetings_Webinars] FOREIGN KEY([meetingID])
+REFERENCES [dbo].[Meetings] ([meetingID])
+GO
+
+ALTER TABLE [dbo].[Webinars] CHECK CONSTRAINT [Meetings_Webinars]
+GO
+
+ALTER TABLE [dbo].[Webinars]  WITH CHECK ADD  CONSTRAINT [Webinars_Services] FOREIGN KEY([serviceID])
+REFERENCES [dbo].[Services] ([serviceID])
+GO
+
+ALTER TABLE [dbo].[Webinars] CHECK CONSTRAINT [Webinars_Services]
+GO
+
+ALTER TABLE [dbo].[Webinars]  WITH CHECK ADD  CONSTRAINT [WebinarServiceIDLetterCheck] CHECK  ((isnumeric(left([serviceID],(1)))<>(1)))
+GO
+
+ALTER TABLE [dbo].[Webinars] CHECK CONSTRAINT [WebinarServiceIDLetterCheck]
+GO
 
 -- Reference: Meetings_Webinars (table: Webinars)
 ALTER TABLE Webinars ADD CONSTRAINT Meetings_Webinars
@@ -626,13 +1086,16 @@ create view RaportFinansowy as
 Raport zwracający informację o liczbie zapisanych osób na przyszłe spotkania z kursów.
 
 ```sql
-SELECT 'cm' + CAST(CM.meetingID AS char(4)) AS eventID, S.serviceName as eventName, COUNT(A.attendanceID) AS enrolled, 'CMeeting' as type
-FROM            Attendees AS A INNER JOIN
-                         Meetings AS M ON M.meetingID = A.meetingID INNER JOIN
-                         CoursesMeetings AS CM ON CM.meetingID = M.meetingID INNER JOIN
-                         Courses AS C ON C.serviceID = CM.serviceID INNER JOIN
-                         Services AS S ON S.serviceID = C.serviceID
-WHERE M.datetime > GETDATE()
+
+CREATE VIEW [dbo].[enrolledForCoursesMeetings]
+AS
+SELECT 'cm' + CAST(CM.meetingID AS char(6)) AS eventID, S.serviceName AS EventName, COUNT(A.attendanceID) AS enrolled, 'CMeeting' AS type
+FROM            dbo.Attendees AS A INNER JOIN
+                         dbo.Meetings AS M ON M.meetingID = A.meetingID INNER JOIN
+                         dbo.CoursesMeetings AS CM ON CM.meetingID = M.meetingID INNER JOIN
+                         dbo.Courses AS C ON C.serviceID = CM.serviceID INNER JOIN
+                         dbo.Services AS S ON S.serviceID = C.serviceID
+WHERE        (M.datetime > GETDATE())
 GROUP BY CM.meetingID, S.serviceName
 ```
 <div style="page-break-after: always;"></div>
@@ -640,24 +1103,29 @@ GROUP BY CM.meetingID, S.serviceName
 Raport zwracający informację o liczbie zapisanych osób na przyszłe spotkania ze studiów.
 
 ```sql
-SELECT 'sm' + CAST(SM.meetingID AS char(4)) AS eventID, S.serviceName AS eventName, COUNT(A.attendanceID) AS enrolled, 'SMeeting' as type
-FROM            Attendees AS A INNER JOIN
-                         Meetings AS M ON M.meetingID = A.meetingID INNER JOIN
-                         SubjectsMeetings AS SM ON SM.meetingID = M.meetingID INNER JOIN
-                         Services AS S ON S.serviceID = SM.subjectMeetingID
-WHERE M.datetime > GETDATE()
+CREATE VIEW [dbo].[enrolledForStudiesMeetings]
+AS
+SELECT 'sm' + CAST(SM.meetingID AS char(4)) AS eventID, S.serviceName, COUNT(A.attendanceID) AS enrolled, 'SMeeting' AS type
+FROM dbo.Attendees AS A INNER JOIN
+    dbo.Meetings AS M ON M.meetingID = A.meetingID INNER JOIN
+    dbo.SubjectsMeetings AS SM ON SM.meetingID = M.meetingID INNER JOIN
+    dbo.Services AS S ON S.serviceID = SM.subjectMeetingID
+WHERE (M.datetime > GETDATE())
 GROUP BY SM.meetingID, S.serviceName
 ```
 
 Raport zwracający informację o liczbie zapisanych osób na przyszłe studia, semestry, kursy, webinary.
 
 ```sql
-SELECT S.serviceID as eventID, S.serviceName as eventName, COUNT(O.orderID) AS enrolled, S.type
-FROM            Orders AS O INNER JOIN
-                         OrderDetails AS OD ON OD.orderID = O.orderID RIGHT OUTER JOIN
-                         Services AS S ON S.serviceID = OD.serviceID
-WHERE S.startDate > GETDATE() AND S.type <> 'pSpotkanie'
-GROUP BY S.serviceID, S.serviceName
+CREATE VIEW [dbo].[PeopleEnrolledForFutureStudiesCoursesWebinars]
+AS
+SELECT S.serviceID AS eventID, S.serviceName AS EventName, COUNT(O.orderID) AS enrolled, S.type
+FROM dbo.Orders AS O INNER JOIN
+    dbo.OrderDetails AS OD ON OD.orderID = O.orderID RIGHT OUTER JOIN
+    dbo.Services AS S ON S.serviceID = OD.serviceID
+WHERE (S.startDate > GETDATE()) AND (S.type <> 'pSpotkanie')
+GROUP BY S.serviceID, S.serviceName, S.type
+GO
 ```
 
 Raport zwracający informację o liczbie zapisanych osób na przyszłe wydarzenia.
@@ -1223,29 +1691,40 @@ end;
 Dodawanie nowego nagrania spotkania
 
 ```sql
-create procedure createRecording
+CREATE PROCEDURE [dbo].[createRecording]
 	@MeetingID INTEGER
-as
-begin
-	declare @meetingLink VARCHAR(100);
-	declare @recordLink VARCHAR(100);
-	declare @newRecordID INTEGER;
-	set @meetingLink = (select meetingLink from Meetings where MeetingID = @MeetingID);
-	set @recordLink = 'https://www.educewave.com/r' + SUBSTRING(@meetingLink, 28, 6);
+AS
+BEGIN
+	BEGIN TRY
+		BEGIN TRANSACTION;
 
-	insert into Recordings(recordLink)
-	values (@recordLink);
-	
-	set @newRecordID = SCOPE_IDENTITY();
+		DECLARE @meetingLink VARCHAR(100);
+		DECLARE @recordLink VARCHAR(100);
+		DECLARE @newRecordID INTEGER;
 
-	update Recordings
-	set recordLink = @recordLink + cast(@newRecordID as varchar(5))
-	where recordID = @newRecordID;
+		SET @meetingLink = (SELECT meetingLink FROM Meetings WHERE MeetingID = @MeetingID);
+		SET @recordLink = 'https://www.educewave.com/r' + SUBSTRING(@meetingLink, 28, 6);
 
-	update Meetings
-	set recordID = @newRecordID
-	where meetingID = @MeetingID;
-end;
+		INSERT INTO Recordings (recordLink)
+		VALUES (@recordLink);
+
+		SET @newRecordID = SCOPE_IDENTITY();
+
+		UPDATE Recordings
+		SET recordLink = @recordLink + CAST(@newRecordID AS VARCHAR(5))
+		WHERE recordID = @newRecordID;
+
+		UPDATE Meetings
+		SET recordID = @newRecordID
+		WHERE meetingID = @MeetingID;
+
+		COMMIT;
+	END TRY
+	BEGIN CATCH
+		ROLLBACK;
+	END CATCH;
+END;
+GO
 ```
 
 Tworzenie nowego nagrania i automatyczne przydzielanie dostępu wszystkim uprawnionym.
@@ -1644,3 +2123,165 @@ Na indentyfikator przedmiotu ze studiów (subjectID)
 CREATE NONCLUSTERED INDEX SubjectGrades_subjectID ON SubjectGrades (subjectID);
 ```
 
+**<font  size=4>Uprawnienia do poszczególnych tabel i funkcjonalności</font>**
+
+Utworzenie ról, do których zostaną przypisani konkretni użytkownicy bazy
+
+```sql
+create role admin
+create role administration_office_employee
+create role director
+create role education_office_employee
+create role interpreter
+create role student
+create role tutor
+```
+
+Raport listy dłużników - pracownik administracji
+
+```sql
+grant select on ListOfDebtors to administration_office_employee
+grant select on DebtorsCourses to administration_office_employee
+grant select on DebtorsSubjectMeetings to administration_office_employee
+grant select on DebtorsWebinars to administration_office_employee
+```
+
+Raport frekwencji - pracownik administracji
+
+```sql
+grant select on SingleMeetingFrequentionReport to administration_office_employee
+grant select on SubjectFrequentionReport to administration_office_employee
+grant select on TermFrequentionReport to administration_office_employee
+```
+
+Raport osób zapisanych na przyszłe wydarzenia - pracownik administracji
+
+```sql
+grant select on enrolledForStudiesMeetings to administration_office_employee
+grant select on enrolledForCoursesMeetings to administration_office_employee
+grant select on PeopleEnrolledForFutureEvents to administration_office_employee
+grant select on PeopleEnrolledForFutureStudiesCoursesWebinars to administration_office_employee
+```
+
+Raport osób, które zdały studia lub kurs - pracownik administracji
+
+```sql
+grant select on PassedStudies to administration_office_employee
+grant select on PassedStudiesGrades to administration_office_employee
+grant select on PassedAllInternships to administration_office_employee
+```
+
+Raport kolizji - pracownik administracji
+
+```sql
+grant select on AvalibleSubjectMeetings to administration_office_employee
+grant select on AvalibleCourseMeetings to administration_office_employee
+grant select on AvalibleWebinarMeetings to administration_office_employee
+grant select on AllAvalibleMeetings to administration_office_employee
+```
+
+Sprawdzanie obecności
+
+```sql
+grant select, insert, update on Attendees to tutor
+```
+
+Usuwanie nagrań - administrator
+
+```sql
+grant delete on Recordings to admin
+```
+
+Zmiana daty spotkania z przyczyn losowych + dodawanie spotkań (układanie harmonogramu zajęć) - pracownik adminisracji<
+
+```sql
+grant insert, alter on Meetings to administration_office_employee
+grant execute on changeMeetingDate to administration_office_employee
+```
+
+Manualne dodawanie klienta do spotkań - odroczenie płatności
+
+```sql
+grant select on RecordingsDuringCourse to director
+grant select on RecordingsDuringStudies to director
+grant select on RecordingsDuringTerm to director
+grant select on RecordingsDuringService to director
+grant select on RecordingsDuringService to director
+grant execute on giveAccessToCourseOrStudiesRecordings to director
+grant execute on addCustomerToServiceAttendance to director
+grant execute on enrollManually to director
+```
+
+Dodawanie toku studiów - pracownik biura dydaktyki
+
+```sql
+grant insert on Services to education_office_employee
+grant insert on Studies to education_office_employee
+grant insert on Terms to education_office_employee
+grant insert on Subjects to education_office_employee
+grant insert on SubjectsMeetings to education_office_employee
+grant insert on SubjectsRecordings to education_office_employee
+```
+
+Dodawanie nowych webinarów - pracownik biura dydaktyki
+
+```sql
+grant insert on Webinars to education_office_employee
+```
+
+Dodawanie nowych kursów - pracownik biura dydaktyki
+
+```sql
+grant insert on Courses to education_office_employee
+grant insert on CoursesMeetings to education_office_employee
+grant insert on CourseRecords to education_office_employee
+```
+
+Możliwość przeglądania oferty - wszyscy
+
+```sql
+grant select on Services to public
+```
+
+Dodawanie i usuwanie pracowników
+
+```sql
+grant insert, delete on Employees to director
+grant insert, delete on Interpreters to director
+```
+
+Raport finansowy - pracownik biura administracji
+
+```sql
+grant select on FinancialReport to administration_office_employee
+```
+
+Dostęp do poszczególnych tabel (jeśli nie zostało to wcześniej uwzględnione)
+
+```sql
+grant select on Orders to director, administration_office_employee
+grant select on OrderDetails to director, administration_office_employee
+grant select, update on Access to tutor
+grant select, update on Attendees to tutor
+grant select on Clients to director, administration_office_employee, education_office_employee
+grant select on CourseGrade to education_office_employee
+grant select, insert, update on CourseGrade to tutor
+grant select, insert on Courses to education_office_employee
+grant select, update on Employees to administration_office_employee
+grant select, insert, delete, update on Employees to director
+grant select, insert, update on IndividualInternship to education_office_employee
+grant select, insert, delete, update on Interpreters to director
+grant select, update on Interpreters to administration_office_employee
+grant select, update, insert on Meetings to tutor, director, interpreter, education_office_employee
+grant select, update, insert on Practices to education_office_employee
+grant select, update, select on Recordings to education_office_employee, tutor
+grant select on Studies to public
+grant select on Webinars to public
+grant select on Courses to public
+grant select on Terms to public
+grant select on Subjects to public
+grant select on SubjectGrades to tutor
+grant select, insert, update on SubjectGrades to tutor
+grant select, insert on SubjectsMeetings to tutor, education_office_employee
+grant select, insert on SubjectsRecordings to tutor, education_office_employee
+```
